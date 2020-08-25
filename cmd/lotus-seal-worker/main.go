@@ -151,6 +151,11 @@ var runCmd = &cli.Command{
 			Usage: "used when 'listen' is unspecified. must be a valid duration recognized by golang's time.ParseDuration function",
 			Value: "30m",
 		},
+		&cli.BoolFlag{
+			Name: "zt",
+			Usage: "enable zero transmission (only available on cephfs)",
+			Value: false,
+		},
 	},
 	Before: func(cctx *cli.Context) error {
 		if cctx.IsSet("address") {
