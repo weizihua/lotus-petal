@@ -144,23 +144,28 @@ func (st *Local) OpenPath(ctx context.Context, p string) error {
 	st.localLk.Lock()
 	defer st.localLk.Unlock()
 
-	_, err := os.Stat(p)
-	if err != nil {
-		if !os.IsExist(err) {
-			if err := os.MkdirAll(p, os.ModeDir); err != nil {
-				return err
+	cfgp := p
+	if _, exist := os.LookupEnv("USE_ZERO_TRANSMISSION"); exist && len(os.Getenv("CONFIG_PATH")) != 0 {
+		cfgp = os.Getenv("CONFIG_PATH")
+
+		_, err := os.Stat(p)
+		if err != nil {
+			if !os.IsExist(err) {
+				if err := os.MkdirAll(p, os.ModeDir); err != nil {
+					return err
+				}
 			}
 		}
 	}
 
-	mb, err := ioutil.ReadFile(filepath.Join(p, MetaFile))
+	mb, err := ioutil.ReadFile(filepath.Join(cfgp, MetaFile))
 	if err != nil {
-		return xerrors.Errorf("reading storage metadata for %s: %w", p, err)
+		return xerrors.Errorf("reading storage metadata for %s: %w", cfgp, err)
 	}
 
 	var meta LocalStorageMeta
 	if err := json.Unmarshal(mb, &meta); err != nil {
-		return xerrors.Errorf("unmarshalling storage metadata for %s: %w", p, err)
+		return xerrors.Errorf("unmarshalling storage metadata for %s: %w", cfgp, err)
 	}
 
 	// TODO: Check existing / dedupe
