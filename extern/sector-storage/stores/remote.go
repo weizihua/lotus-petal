@@ -244,9 +244,6 @@ func (r *Remote) acquireFromRemote(ctx context.Context, s abi.SectorID, fileType
 				if protoc == UP_ZT {
 					exec = true
 					log.Infof("using zero transport")
-					//root := os.Getenv("CEPHFS_MOUNT_POINT")
-					//path := gopath.Join(root, strings.TrimPrefix(url, ZTPrefix))
-					//return url, copySector(path, dest)
 					return url, nil
 				}
 				continue
@@ -467,8 +464,4 @@ func (r *Remote) removeFromCephFS(path string) error {
 	path = gopath.Join(root, path)
 	log.Infof("remove cache %s", path)
 	return os.RemoveAll(path)
-}
-
-func (r *Remote) canUseZeroTransport(from, to string) bool {
-	return from == to
 }

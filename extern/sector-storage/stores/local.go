@@ -144,6 +144,15 @@ func (st *Local) OpenPath(ctx context.Context, p string) error {
 	st.localLk.Lock()
 	defer st.localLk.Unlock()
 
+	_, err := os.Stat(p)
+	if err != nil {
+		if !os.IsExist(err) {
+			if err := os.MkdirAll(p, os.ModeDir); err != nil {
+				return err
+			}
+		}
+	}
+
 	mb, err := ioutil.ReadFile(filepath.Join(p, MetaFile))
 	if err != nil {
 		return xerrors.Errorf("reading storage metadata for %s: %w", p, err)

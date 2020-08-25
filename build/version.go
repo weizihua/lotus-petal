@@ -4,6 +4,7 @@ import "fmt"
 
 var CurrentCommit string
 var BuildType int
+var Feature string
 
 const (
 	BuildDefault = 0
@@ -28,7 +29,7 @@ func buildType() string {
 const BuildVersion = "0.5.2"
 
 func UserVersion() string {
-	return BuildVersion + buildType() + CurrentCommit
+	return BuildVersion + buildType() + CurrentCommit + Feature
 }
 
 type Version uint32
