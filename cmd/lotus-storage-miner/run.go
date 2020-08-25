@@ -6,6 +6,7 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	mux "github.com/gorilla/mux"
@@ -50,6 +51,16 @@ var runCmd = &cli.Command{
 			Usage: "manage open file limit",
 			Value: true,
 		},
+		&cli.BoolFlag{
+			Name: "zt",
+			Usage: "enable zero transmission (only available on cephfs)",
+			Value: false,
+		},
+		&cli.StringFlag{
+			Name: "sectors-storage",
+			Usage: "sectors storage path",
+			EnvVars: []string{"SECTORS_STORAGE_PATH"},
+		},
 	},
 	Action: func(cctx *cli.Context) error {
 		if !cctx.Bool("enable-gpu-proving") {
@@ -93,6 +104,32 @@ var runCmd = &cli.Command{
 		r, err := repo.NewFS(minerRepoPath)
 		if err != nil {
 			return err
+		}
+
+		if err := os.Setenv("CONFIG_PATH", cctx.String(FlagMinerRepo)); err != nil {
+			return err
+		}
+
+		if err := os.Unsetenv("USE_ZERO_TRANSMISSION"); err != nil {
+			return err
+		}
+
+		if cctx.Bool("zt") {
+			if err := os.Setenv("USE_ZERO_TRANSMISSION", "1"); err != nil {
+				return err
+			}
+
+			if mount, exist := os.LookupEnv("CEPHFS_MOUNT_POINT"); exist && len(cctx.String("sectors-storage")) != 0 {
+				if !strings.Contains(minerRepoPath, mount) {
+					return xerrors.Errorf("miner repo is not in cephfs, can't use zero transport")
+				}
+
+				if err := os.Setenv("STORAGE_ROOT_PATH", strings.TrimPrefix(cctx.String("sectors-storage"), mount)); err != nil {
+					return err
+				}
+			} else {
+				return xerrors.Errorf("use zero transport must set environment variable $CEPHFS_MOUNT_POINT and specify sectors storage path")
+			}
 		}
 
 		ok, err := r.Exists()

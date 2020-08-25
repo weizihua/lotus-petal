@@ -19,6 +19,18 @@ type FetchHandler struct {
 	*Local
 }
 
+type UrlProtoc int
+
+const (
+	UP_Undefined UrlProtoc = iota
+	UP_Http
+	UP_ZT
+)
+
+func init() {
+	logging.SetLogLevel("stores", "DEBUG")
+}
+
 func (handler *FetchHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) { // /remote/
 	mux := mux.NewRouter()
 

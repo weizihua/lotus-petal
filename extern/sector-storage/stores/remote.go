@@ -12,6 +12,7 @@ import (
 	gopath "path"
 	"path/filepath"
 	"sort"
+	"strings"
 	"sync"
 
 	"github.com/filecoin-project/lotus/extern/sector-storage/fsutil"
@@ -147,10 +148,19 @@ func (r *Remote) AcquireSector(ctx context.Context, s abi.SectorID, spt abi.Regi
 			continue
 		}
 
-		if op == AcquireMove {
-			if err := r.deleteFromRemote(ctx, url); err != nil {
-				log.Warnf("deleting sector %v from %s (delete %s): %+v", s, storageID, url, err)
+		switch parseUrlProtoc(url) {
+		case UP_Http:
+			if op == AcquireMove {
+				if err := r.deleteFromRemote(ctx, url); err != nil {
+					log.Warnf("deleting sector %v from %s (delete %s): %+v", s, storageID, url, err)
+				}
 			}
+		case UP_ZT:
+			//if op == AcquireMove {
+			//	if err := r.removeFromCephFS(strings.TrimPrefix(url, ZTPrefix)); err != nil {
+			//		log.Warnf("deleting sector %v from %s (delete %s): %+v", s, storageID, url, err)
+			//	}
+			//}
 		}
 	}
 
@@ -187,30 +197,65 @@ func (r *Remote) acquireFromRemote(ctx context.Context, s abi.SectorID, fileType
 	for _, info := range si {
 		// TODO: see what we have local, prefer that
 
+		var httpUrl = ""
+		var official = func(url []string) (string, error) {
+			for _, u := range url {
+				log.Infof("using official transmission")
+				tempDest, err := tempFetchDest(dest, true)
+				if err != nil {
+					return "", err
+				}
+
+				if err := os.RemoveAll(dest); err != nil {
+					return "", xerrors.Errorf("removing dest: %w", err)
+				}
+
+				err = r.fetch(ctx, u, tempDest)
+				if err != nil {
+					merr = multierror.Append(merr, xerrors.Errorf("fetch error %s (storage %s) -> %s: %w", url, info.ID, tempDest, err))
+				}
+
+				if err := move(tempDest, dest); err != nil {
+					return "", xerrors.Errorf("fetch move error (storage %s) %s -> %s: %w", info.ID, tempDest, dest, err)
+				}
+
+				if merr != nil {
+					log.Warnw("acquireFromRemote encountered errors when fetching sector from remote", "errors", merr)
+				}
+				return u, nil
+			}
+			return "", xerrors.Errorf("failed to acquire sector %v from remote (tried %v): %w", s, si, merr)
+		}
+
+		var exec = false
 		for _, url := range info.URLs {
-			tempDest, err := tempFetchDest(dest, true)
-			if err != nil {
-				return "", err
+			protoc := parseUrlProtoc(url)
+			if protoc == UP_Undefined {
+				return "", xerrors.Errorf("url protoc undefined: %s", url)
 			}
 
-			if err := os.RemoveAll(dest); err != nil {
-				return "", xerrors.Errorf("removing dest: %w", err)
+			log.Debugf("acquireFromRemote: url: %s", url)
+
+			if protoc == UP_Http {
+				httpUrl = url
 			}
 
-			err = r.fetch(ctx, url, tempDest)
-			if err != nil {
-				merr = multierror.Append(merr, xerrors.Errorf("fetch error %s (storage %s) -> %s: %w", url, info.ID, tempDest, err))
+			if _, exist := os.LookupEnv("USE_ZERO_TRANSMISSION"); exist {
+				if protoc == UP_ZT {
+					exec = true
+					log.Infof("using zero transport")
+					//root := os.Getenv("CEPHFS_MOUNT_POINT")
+					//path := gopath.Join(root, strings.TrimPrefix(url, ZTPrefix))
+					//return url, copySector(path, dest)
+					return url, nil
+				}
 				continue
 			}
+		}
 
-			if err := move(tempDest, dest); err != nil {
-				return "", xerrors.Errorf("fetch move error (storage %s) %s -> %s: %w", info.ID, tempDest, dest, err)
-			}
-
-			if merr != nil {
-				log.Warnw("acquireFromRemote encountered errors when fetching sector from remote", "errors", merr)
-			}
-			return url, nil
+		if !exec {
+			exec = true
+			return official([]string{httpUrl})
 		}
 	}
 
@@ -404,3 +449,26 @@ func (r *Remote) FsStat(ctx context.Context, id ID) (fsutil.FsStat, error) {
 }
 
 var _ Store = &Remote{}
+
+func parseUrlProtoc(url string) UrlProtoc {
+	u := strings.Split(url, ":")
+	switch u[0] {
+	case "http":
+		return UP_Http
+	case "zt":
+		return UP_ZT
+	default:
+		return UP_Undefined
+	}
+}
+
+func (r *Remote) removeFromCephFS(path string) error {
+	root := os.Getenv("CEPHFS_MOUNT_POINT")
+	path = gopath.Join(root, path)
+	log.Infof("remove cache %s", path)
+	return os.RemoveAll(path)
+}
+
+func (r *Remote) canUseZeroTransport(from, to string) bool {
+	return from == to
+}

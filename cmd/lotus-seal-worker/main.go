@@ -76,6 +76,16 @@ func main() {
 				Usage: "enable use of GPU for mining operations",
 				Value: true,
 			},
+			&cli.BoolFlag{
+				Name: "zt",
+				Usage: "enable zero transmission (only available on cephfs)",
+				Value: false,
+			},
+			&cli.StringFlag{
+				Name: "sectors-storage",
+				Usage: "sectors storage path",
+				EnvVars: []string{"SECTORS_STORAGE_PATH"},
+			},
 		},
 
 		Commands: local,
@@ -240,6 +250,33 @@ var runCmd = &cli.Command{
 			return err
 		}
 
+		if err := os.Setenv("CONFIG_PATH", cctx.String(FlagWorkerRepo)); err != nil {
+			return err
+		}
+
+		if err := os.Unsetenv("USE_ZERO_TRANSMISSION"); err != nil {
+			return err
+		}
+
+		sto := cctx.String("sectors-storage")
+
+		if cctx.Bool("zt") {
+			if err := os.Setenv("USE_ZERO_TRANSMISSION", "1"); err != nil {
+				return err
+			}
+
+			if mount, exist := os.LookupEnv("CEPHFS_MOUNT_POINT"); exist && len(sto) != 0 {
+				if !strings.Contains(sto, mount) {
+					return xerrors.Errorf("worker repo is not in cephfs, can't use zero transport")
+				}
+				if err := os.Setenv("STORAGE_ROOT_PATH", strings.TrimPrefix(sto, mount)); err != nil {
+					return err
+				}
+			} else {
+				return xerrors.Errorf("use zero transport must set environment variable $CEPHFS_MOUNT_POINT and specify sectors storage path")
+			}
+		}
+
 		ok, err := r.Exists()
 		if err != nil {
 			return err
@@ -271,9 +308,15 @@ var runCmd = &cli.Command{
 					return xerrors.Errorf("persisting storage metadata (%s): %w", filepath.Join(lr.Path(), "sectorstore.json"), err)
 				}
 
-				localPaths = append(localPaths, stores.LocalPath{
-					Path: lr.Path(),
-				})
+				if len(sto) == 0 {
+					localPaths = append(localPaths, stores.LocalPath{
+						Path: lr.Path(),
+					})
+				} else {
+					localPaths = append(localPaths, stores.LocalPath{
+						Path: sto,
+					})
+				}
 			}
 
 			if err := lr.SetStorage(func(sc *stores.StorageConfig) {
@@ -317,7 +360,13 @@ var runCmd = &cli.Command{
 			}
 		}
 
-		localStore, err := stores.NewLocal(ctx, lr, nodeApi, []string{"http://" + address + "/remote"})
+		var addrs []string
+		addrs = append(addrs, "http://" + address + "/remote")
+		if cctx.Bool("zt") {
+			addrs = append(addrs, "zt:" + os.Getenv("STORAGE_ROOT_PATH"))
+		}
+
+		localStore, err := stores.NewLocal(ctx, lr, nodeApi, addrs)
 		if err != nil {
 			return err
 		}
