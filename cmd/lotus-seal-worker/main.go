@@ -156,6 +156,11 @@ var runCmd = &cli.Command{
 			Usage: "enable zero transmission (only available on cephfs)",
 			Value: false,
 		},
+		&cli.StringFlag{
+			Name: "sectors-storage",
+			Usage: "sectors storage path",
+			EnvVars: []string{"SECTORS_STORAGE_PATH"},
+		},
 	},
 	Before: func(cctx *cli.Context) error {
 		if cctx.IsSet("address") {
