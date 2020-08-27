@@ -349,6 +349,12 @@ func (r *Remote) Remove(ctx context.Context, sid abi.SectorID, typ SectorFileTyp
 
 	for _, info := range si {
 		for _, url := range info.URLs {
+			switch parseUrlProtoc(url) {
+			case UP_Http:
+			case UP_ZT:
+				continue
+			}
+
 			if err := r.deleteFromRemote(ctx, url); err != nil {
 				log.Warnf("remove %s: %+v", url, err)
 				continue
