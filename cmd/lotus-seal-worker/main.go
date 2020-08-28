@@ -149,7 +149,7 @@ var runCmd = &cli.Command{
 		&cli.StringFlag{
 			Name:  "timeout",
 			Usage: "used when 'listen' is unspecified. must be a valid duration recognized by golang's time.ParseDuration function",
-			Value: "30m",
+			Value: "60m",
 		},
 		&cli.BoolFlag{
 			Name: "zt",
@@ -497,8 +497,8 @@ func watchMinerConn(ctx context.Context, cctx *cli.Context, nodeApi api.StorageM
 			fmt.Sprintf("--precommit2=%t", cctx.Bool("precommit2")),
 			fmt.Sprintf("--commit=%t", cctx.Bool("commit")),
 			fmt.Sprintf("--parallel-fetch-limit=%d", cctx.Int("parallel-fetch-limit")),
-			fmt.Sprintf("--timeout=%s", cctx.String("timeout"),
-			fmt.Sprintf("--sectors-storage=%s", cctx.String("sectors-storage"))),
+			fmt.Sprintf("--timeout=%s", cctx.String("timeout")),
+			fmt.Sprintf("--sectors-storage=%s", cctx.String("sectors-storage")),
 		}, os.Environ()); err != nil {
 			fmt.Println(err)
 		}
