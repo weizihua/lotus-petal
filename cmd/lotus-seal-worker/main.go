@@ -499,6 +499,7 @@ func watchMinerConn(ctx context.Context, cctx *cli.Context, nodeApi api.StorageM
 			fmt.Sprintf("--parallel-fetch-limit=%d", cctx.Int("parallel-fetch-limit")),
 			fmt.Sprintf("--timeout=%s", cctx.String("timeout")),
 			fmt.Sprintf("--sectors-storage=%s", cctx.String("sectors-storage")),
+			fmt.Sprintf("--zt=%t", cctx.Bool("zt")),
 		}, os.Environ()); err != nil {
 			fmt.Println(err)
 		}
