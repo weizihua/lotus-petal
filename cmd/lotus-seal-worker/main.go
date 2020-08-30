@@ -119,27 +119,32 @@ var runCmd = &cli.Command{
 		&cli.BoolFlag{
 			Name:  "addpiece",
 			Usage: "enable addpiece",
-			Value: true,
+			Value: false,
 		},
 		&cli.BoolFlag{
 			Name:  "precommit1",
 			Usage: "enable precommit1 (32G sectors: 1 core, 128GiB Memory)",
-			Value: true,
+			Value: false,
 		},
 		&cli.BoolFlag{
 			Name:  "unseal",
 			Usage: "enable unsealing (32G sectors: 1 core, 128GiB Memory)",
-			Value: true,
+			Value: false,
 		},
 		&cli.BoolFlag{
 			Name:  "precommit2",
 			Usage: "enable precommit2 (32G sectors: all cores, 96GiB Memory)",
-			Value: true,
+			Value: false,
 		},
 		&cli.BoolFlag{
-			Name:  "commit",
-			Usage: "enable commit (32G sectors: all cores or GPUs, 128GiB Memory + 64GiB swap)",
-			Value: true,
+			Name: "commit1",
+			Usage: "enable commit1",
+			Value: false,
+		},
+		&cli.BoolFlag{
+			Name:  "commit2",
+			Usage: "enable commit2 (32G sectors: all cores or GPUs, 128GiB Memory + 64GiB swap)",
+			Value: false,
 		},
 		&cli.IntFlag{
 			Name:  "parallel-fetch-limit",
@@ -149,7 +154,7 @@ var runCmd = &cli.Command{
 		&cli.StringFlag{
 			Name:  "timeout",
 			Usage: "used when 'listen' is unspecified. must be a valid duration recognized by golang's time.ParseDuration function",
-			Value: "60m",
+			Value: "30m",
 		},
 		&cli.BoolFlag{
 			Name: "zt",
@@ -222,7 +227,7 @@ var runCmd = &cli.Command{
 			return err
 		}
 
-		if cctx.Bool("commit") {
+		if cctx.Bool("commit2") {
 			if err := paramfetch.GetParams(ctx, build.ParametersJSON(), uint64(ssize)); err != nil {
 				return xerrors.Errorf("get params: %w", err)
 			}
@@ -230,7 +235,7 @@ var runCmd = &cli.Command{
 
 		var taskTypes []sealtasks.TaskType
 
-		taskTypes = append(taskTypes, sealtasks.TTFetch, sealtasks.TTCommit1, sealtasks.TTFinalize)
+		taskTypes = append(taskTypes, sealtasks.TTFetch, sealtasks.TTFinalize)
 
 		if cctx.Bool("addpiece") {
 			taskTypes = append(taskTypes, sealtasks.TTAddPiece)
@@ -244,11 +249,14 @@ var runCmd = &cli.Command{
 		if cctx.Bool("precommit2") {
 			taskTypes = append(taskTypes, sealtasks.TTPreCommit2)
 		}
-		if cctx.Bool("commit") {
+		if cctx.Bool("commit1") {
+			taskTypes = append(taskTypes, sealtasks.TTCommit1)
+		}
+		if cctx.Bool("commit2") {
 			taskTypes = append(taskTypes, sealtasks.TTCommit2)
 		}
 
-		if len(taskTypes) == 0 {
+		if len(taskTypes) == 2 {
 			return xerrors.Errorf("no task types specified")
 		}
 
@@ -495,7 +503,8 @@ func watchMinerConn(ctx context.Context, cctx *cli.Context, nodeApi api.StorageM
 			fmt.Sprintf("--precommit1=%t", cctx.Bool("precommit1")),
 			fmt.Sprintf("--unseal=%t", cctx.Bool("unseal")),
 			fmt.Sprintf("--precommit2=%t", cctx.Bool("precommit2")),
-			fmt.Sprintf("--commit=%t", cctx.Bool("commit")),
+			fmt.Sprintf("--commit1=%t", cctx.Bool("commit1")),
+			fmt.Sprintf("--commit2=%t", cctx.Bool("commit2")),
 			fmt.Sprintf("--parallel-fetch-limit=%d", cctx.Int("parallel-fetch-limit")),
 			fmt.Sprintf("--timeout=%s", cctx.String("timeout")),
 			fmt.Sprintf("--sectors-storage=%s", cctx.String("sectors-storage")),
