@@ -106,7 +106,6 @@ var mpoolClear = &cli.Command{
 
 		really := cctx.Bool("really-do-it")
 		if !really {
-			//nolint:golint
 			return fmt.Errorf("--really-do-it must be specified for this action to have an effect; you have been warned")
 		}
 
@@ -116,7 +115,6 @@ var mpoolClear = &cli.Command{
 		return api.MpoolClear(ctx, local)
 	},
 }
-
 var mpoolSub = &cli.Command{
 	Name:  "sub",
 	Usage: "Subscribe to mpool changes",
@@ -347,7 +345,7 @@ var mpoolReplaceCmd = &cli.Command{
 		if err != nil {
 			return fmt.Errorf("parsing gas-premium: %w", err)
 		}
-		// TODO: estimate fee cap here
+		// TODO: estiamte fee cap here
 		msg.GasFeeCap, err = types.BigFromString(cctx.String("gas-feecap"))
 		if err != nil {
 			return fmt.Errorf("parsing gas-feecap: %w", err)

@@ -186,7 +186,6 @@ type FullNode interface {
 
 	// MpoolClear clears pending messages from the mpool
 	MpoolClear(context.Context, bool) error
-
 	// MpoolGetConfig returns (a copy of) the current mpool config
 	MpoolGetConfig(context.Context) (*types.MpoolConfig, error)
 	// MpoolSetConfig sets the mpool config to (a copy of) the supplied config
@@ -325,7 +324,7 @@ type FullNode interface {
 	StateMinerAvailableBalance(context.Context, address.Address, types.TipSetKey) (types.BigInt, error)
 	// StateSectorPreCommitInfo returns the PreCommit info for the specified miner's sector
 	StateSectorPreCommitInfo(context.Context, address.Address, abi.SectorNumber, types.TipSetKey) (miner.SectorPreCommitOnChainInfo, error)
-	// StateSectorGetInfo returns the on-chain info for the specified miner's sector. Returns null in case the sector info isn't found
+	// StateSectorGetInfo returns the on-chain info for the specified miner's sector
 	// NOTE: returned info.Expiration may not be accurate in some cases, use StateSectorExpiration to get accurate
 	// expiration epoch
 	StateSectorGetInfo(context.Context, address.Address, abi.SectorNumber, types.TipSetKey) (*miner.SectorOnChainInfo, error)
@@ -483,7 +482,6 @@ type DealInfo struct {
 	Duration      uint64
 
 	DealID abi.DealID
-
 	CreationTime time.Time
 }
 

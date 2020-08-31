@@ -69,7 +69,7 @@ var keyinfoImportCmd = &cli.Command{
 			if err != nil {
 				return err
 			}
-			defer inputFile.Close() //nolint:errcheck
+			defer inputFile.Close()
 			input = bufio.NewReader(inputFile)
 		}
 
@@ -98,7 +98,7 @@ var keyinfoImportCmd = &cli.Command{
 			return err
 		}
 
-		defer lkrepo.Close() //nolint:errcheck
+		defer lkrepo.Close()
 
 		keystore, err := lkrepo.KeyStore()
 		if err != nil {
@@ -181,7 +181,7 @@ var keyinfoInfoCmd = &cli.Command{
 			if err != nil {
 				return err
 			}
-			defer inputFile.Close() //nolint:errcheck
+			defer inputFile.Close()
 			input = bufio.NewReader(inputFile)
 		}
 

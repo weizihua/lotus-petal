@@ -2,9 +2,8 @@ package bls
 
 import (
 	"crypto/rand"
-	"testing"
-
 	"github.com/filecoin-project/go-address"
+	"testing"
 )
 
 func BenchmarkBLSSign(b *testing.B) {
@@ -13,7 +12,7 @@ func BenchmarkBLSSign(b *testing.B) {
 		b.StopTimer()
 		pk, _ := signer.GenPrivate()
 		randMsg := make([]byte, 32)
-		_, _ = rand.Read(randMsg)
+		rand.Read(randMsg)
 		b.StartTimer()
 
 		_, _ = signer.Sign(pk, randMsg)
@@ -25,7 +24,7 @@ func BenchmarkBLSVerify(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
 		randMsg := make([]byte, 32)
-		_, _ = rand.Read(randMsg)
+		rand.Read(randMsg)
 
 		priv, _ := signer.GenPrivate()
 		pk, _ := signer.ToPublic(priv)

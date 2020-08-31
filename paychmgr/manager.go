@@ -203,8 +203,6 @@ func (pm *Manager) CheckVoucherSpendable(ctx context.Context, ch address.Address
 	return ca.checkVoucherSpendable(ctx, ch, sv, secret, proof)
 }
 
-// AddVoucherOutbound adds a voucher for an outbound channel.
-// Returns an error if the channel is not already in the store.
 func (pm *Manager) AddVoucherOutbound(ctx context.Context, ch address.Address, sv *paych.SignedVoucher, proof []byte, minDelta types.BigInt) (types.BigInt, error) {
 	ca, err := pm.accessorByAddress(ch)
 	if err != nil {

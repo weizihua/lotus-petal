@@ -59,7 +59,6 @@ func infoCmdAct(cctx *cli.Context) error {
 	if err != nil {
 		return xerrors.Errorf("getting chain head: %w", err)
 	}
-
 	maddr, err := getActorAddress(ctx, nodeApi, cctx.String("actor"))
 	if err != nil {
 		return err
@@ -240,6 +239,7 @@ var stateList = []stateMeta{
 	{col: color.FgBlue, state: sealing.WaitDeals},
 
 	{col: color.FgRed, state: sealing.UndefinedSectorState},
+	{col: color.FgYellow, state: sealing.Empty},
 	{col: color.FgYellow, state: sealing.Packing},
 	{col: color.FgYellow, state: sealing.PreCommit1},
 	{col: color.FgYellow, state: sealing.PreCommit2},
@@ -253,7 +253,6 @@ var stateList = []stateMeta{
 
 	{col: color.FgCyan, state: sealing.Removing},
 	{col: color.FgCyan, state: sealing.Removed},
-
 	{col: color.FgRed, state: sealing.FailedUnrecoverable},
 	{col: color.FgRed, state: sealing.SealPreCommit1Failed},
 	{col: color.FgRed, state: sealing.SealPreCommit2Failed},

@@ -11,7 +11,6 @@ import (
 	bstore "github.com/filecoin-project/lotus/lib/blockstore"
 )
 
-//nolint:deadcode,varcheck
 var log = logging.Logger("cachebs")
 
 type CacheBS struct {

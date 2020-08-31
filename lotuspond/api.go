@@ -18,7 +18,7 @@ import (
 type NodeState int
 
 const (
-	NodeUnknown = iota //nolint:deadcode
+	NodeUnknown = iota
 	NodeRunning
 	NodeStopped
 )
@@ -137,3 +137,4 @@ func apiClient(ctx context.Context) (*client, error) {
 	}
 	return c, nil
 }
+

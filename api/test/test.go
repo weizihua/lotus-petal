@@ -4,8 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/multiformats/go-multiaddr"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -16,16 +14,10 @@ import (
 
 type TestNode struct {
 	api.FullNode
-	// ListenAddr is the address on which an API server is listening, if an
-	// API server is created for this Node
-	ListenAddr multiaddr.Multiaddr
 }
 
 type TestStorageNode struct {
 	api.StorageMiner
-	// ListenAddr is the address on which an API server is listening, if an
-	// API server is created for this Node
-	ListenAddr multiaddr.Multiaddr
 
 	MineOne func(context.Context, miner.MineReq) error
 }
@@ -62,11 +54,11 @@ func TestApis(t *testing.T, b APIBuilder) {
 	t.Run("testMiningReal", ts.testMiningReal)
 }
 
-var OneMiner = []StorageMiner{{Full: 0, Preseal: PresealGenesis}}
+var oneMiner = []StorageMiner{{Full: 0, Preseal: PresealGenesis}}
 
 func (ts *testSuite) testVersion(t *testing.T) {
 	ctx := context.Background()
-	apis, _ := ts.makeNodes(t, 1, OneMiner)
+	apis, _ := ts.makeNodes(t, 1, oneMiner)
 	api := apis[0]
 
 	v, err := api.Version(ctx)
@@ -78,7 +70,7 @@ func (ts *testSuite) testVersion(t *testing.T) {
 
 func (ts *testSuite) testID(t *testing.T) {
 	ctx := context.Background()
-	apis, _ := ts.makeNodes(t, 1, OneMiner)
+	apis, _ := ts.makeNodes(t, 1, oneMiner)
 	api := apis[0]
 
 	id, err := api.ID(ctx)
@@ -90,7 +82,7 @@ func (ts *testSuite) testID(t *testing.T) {
 
 func (ts *testSuite) testConnectTwo(t *testing.T) {
 	ctx := context.Background()
-	apis, _ := ts.makeNodes(t, 2, OneMiner)
+	apis, _ := ts.makeNodes(t, 2, oneMiner)
 
 	p, err := apis[0].NetPeers(ctx)
 	if err != nil {

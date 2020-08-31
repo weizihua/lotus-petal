@@ -512,3 +512,12 @@ func (c *cachedActorLookup) StateGetActor(ctx context.Context, a address.Address
 }
 
 type ActorLookup func(context.Context, address.Address, types.TipSetKey) (*types.Actor, error)
+
+func countFrom(msgs []*types.SignedMessage, from address.Address) (out int) {
+	for _, msg := range msgs {
+		if msg.Message.From == from {
+			out++
+		}
+	}
+	return out
+}

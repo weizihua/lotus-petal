@@ -2,13 +2,12 @@ package main
 
 import (
 	"fmt"
+	"github.com/filecoin-project/specs-actors/actors/builtin/miner"
 	"os"
 	"sort"
 	"strconv"
 	"text/tabwriter"
 	"time"
-
-	"github.com/filecoin-project/specs-actors/actors/builtin/miner"
 
 	"github.com/urfave/cli/v2"
 	"golang.org/x/xerrors"

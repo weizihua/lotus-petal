@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/filecoin-project/lotus/paychmgr"
-
 	"go.uber.org/fx"
 
 	"github.com/ipfs/go-cid"

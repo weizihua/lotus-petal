@@ -313,7 +313,6 @@ func (p *Processor) storeMinerPreCommitInfo(ctx context.Context, miners []minerA
 	}
 
 	stmt, err := tx.Prepare(`copy spi (miner_id, sector_id, sealed_cid, state_root, seal_rand_epoch, expiration_epoch, precommit_deposit, precommit_epoch, deal_weight, verified_deal_weight, is_replace_capacity, replace_sector_deadline, replace_sector_partition, replace_sector_number) from STDIN`)
-
 	if err != nil {
 		return xerrors.Errorf("Failed to prepare miner precommit info statement: %w", err)
 	}

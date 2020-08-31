@@ -3,11 +3,10 @@ package chain_test
 import (
 	"context"
 	"fmt"
+	"github.com/ipfs/go-cid"
 	"os"
 	"testing"
 	"time"
-
-	"github.com/ipfs/go-cid"
 
 	ds "github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"

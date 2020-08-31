@@ -41,10 +41,9 @@ import (
 	"github.com/filecoin-project/lotus/node/repo"
 )
 
-const msgsPerBlock = 20
-
-//nolint:deadcode,varcheck
 var log = logging.Logger("gen")
+
+const msgsPerBlock = 20
 
 var ValidWpostForTesting = []abi.PoStProof{{
 	ProofBytes: []byte("valid proof"),
@@ -117,7 +116,6 @@ var DefaultRemainderAccountActor = genesis.Actor{
 	Balance: big.NewInt(0),
 	Meta:    remAccMeta.ActorMeta(),
 }
-
 func NewGeneratorWithSectors(numSectors int) (*ChainGen, error) {
 	saminer.SupportedProofTypes = map[abi.RegisteredSealProof]struct{}{
 		abi.RegisteredSealProof_StackedDrg2KiBV1: {},

@@ -1337,7 +1337,6 @@ var clientListTransfers = &cli.Command{
 	},
 }
 
-// OutputDataTransferChannels generates table output for a list of channels
 func OutputDataTransferChannels(out io.Writer, channels []lapi.DataTransferChannel, completed bool, color bool) {
 	sort.Slice(channels, func(i, j int) bool {
 		return channels[i].TransferID < channels[j].TransferID
@@ -1367,7 +1366,7 @@ func OutputDataTransferChannels(out io.Writer, channels []lapi.DataTransferChann
 	for _, channel := range sendingChannels {
 		w.Write(toChannelOutput(color, "Sending To", channel))
 	}
-	w.Flush(out) //nolint:errcheck
+	w.Flush(out)
 
 	fmt.Fprintf(out, "\nReceiving Channels\n\n")
 	w = tablewriter.New(tablewriter.Col("ID"),
@@ -1381,7 +1380,7 @@ func OutputDataTransferChannels(out io.Writer, channels []lapi.DataTransferChann
 	for _, channel := range receivingChannels {
 		w.Write(toChannelOutput(color, "Receiving From", channel))
 	}
-	w.Flush(out) //nolint:errcheck
+	w.Flush(out)
 }
 
 func channelStatusString(useColor bool, status datatransfer.Status) string {

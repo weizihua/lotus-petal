@@ -100,7 +100,6 @@ var versionCmd = &cli.Command{
 		return nil
 	},
 }
-
 var runCmd = &cli.Command{
 	Name:  "run",
 	Usage: "Start message reimpursement",
@@ -267,7 +266,6 @@ func (m *MinersRefund) Miners() []address.Address {
 func (m *MinersRefund) GetRefund(addr address.Address) types.BigInt {
 	return m.refunds[addr]
 }
-
 type refunderNodeApi interface {
 	ChainGetParentMessages(ctx context.Context, blockCid cid.Cid) ([]api.Message, error)
 	ChainGetParentReceipts(ctx context.Context, blockCid cid.Cid) ([]*types.MessageReceipt, error)

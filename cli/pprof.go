@@ -13,7 +13,7 @@ import (
 )
 
 var pprofCmd = &cli.Command{
-	Name:   "pprof",
+	Name:  "pprof",
 	Hidden: true,
 	Subcommands: []*cli.Command{
 		PprofGoroutines,
@@ -56,3 +56,4 @@ var PprofGoroutines = &cli.Command{
 		return r.Body.Close()
 	},
 }
+

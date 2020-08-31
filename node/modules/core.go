@@ -43,6 +43,7 @@ type JwtPayload struct {
 	Allow []auth.Permission
 }
 
+
 func APISecret(keystore types.KeyStore, lr repo.LockedRepo) (*dtypes.APIAlg, error) {
 	key, err := keystore.Get(JWTSecretName)
 

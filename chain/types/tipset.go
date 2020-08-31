@@ -238,7 +238,6 @@ func (ts *TipSet) IsChildOf(parent *TipSet) bool {
 		//  height for their processing logic at the moment to obviate it.
 		ts.height > parent.height
 }
-
 func (ts *TipSet) String() string {
 	return fmt.Sprintf("%v", ts.cids)
 }

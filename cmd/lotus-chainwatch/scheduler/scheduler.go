@@ -38,6 +38,7 @@ func (s *Scheduler) Start(ctx context.Context) {
 		log.Fatalw("applying scheduling schema", "error", err)
 	}
 
+
 	go func() {
 		// run once on start after schema has initialized
 		time.Sleep(1 * time.Minute)

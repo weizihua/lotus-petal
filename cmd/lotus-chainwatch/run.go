@@ -34,7 +34,7 @@ var runCmd = &cli.Command{
 	},
 	Action: func(cctx *cli.Context) error {
 		go func() {
-			http.ListenAndServe(":6060", nil) //nolint:errcheck
+			http.ListenAndServe(":6060", nil)
 		}()
 		ll := cctx.String("log-level")
 		if err := logging.SetLogLevel("*", ll); err != nil {

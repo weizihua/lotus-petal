@@ -64,13 +64,11 @@ func (ca *channelAccessor) checkVoucherValidUnlocked(ctx context.Context, ch add
 		return nil, xerrors.Errorf("voucher ChannelAddr doesn't match channel address, got %s, expected %s", sv.ChannelAddr, ch)
 	}
 
-	// Load payment channel actor state
 	act, pchState, err := ca.sa.loadPaychActorState(ctx, ch)
 	if err != nil {
 		return nil, err
 	}
 
-	// Load channel "From" account actor state
 	var actState account.State
 	_, err = ca.api.LoadActorState(ctx, pchState.From, &actState, nil)
 	if err != nil {
@@ -78,7 +76,7 @@ func (ca *channelAccessor) checkVoucherValidUnlocked(ctx context.Context, ch add
 	}
 	from := actState.Address
 
-	// verify voucher signature
+	// verify signature
 	vb, err := sv.SigningBytes()
 	if err != nil {
 		return nil, err

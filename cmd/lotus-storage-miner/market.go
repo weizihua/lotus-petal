@@ -516,7 +516,6 @@ var setSealDurationCmd = &cli.Command{
 		return nodeApi.SectorSetExpectedSealDuration(ctx, time.Duration(delay))
 	},
 }
-
 var dataTransfersCmd = &cli.Command{
 	Name:  "data-transfers",
 	Usage: "Manage data transfers",

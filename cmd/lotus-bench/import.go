@@ -214,12 +214,30 @@ func countGasCosts(et *types.ExecutionTrace) (int64, int64) {
 	}
 
 	for _, sub := range et.Subcalls {
-		c, v := countGasCosts(&sub) //nolint
+		c, v := countGasCosts(&sub)
 		cgas += c
 		vgas += v
 	}
 
 	return cgas, vgas
+}
+
+func compStats(vals []float64) (float64, float64) {
+	var sum float64
+
+	for _, v := range vals {
+		sum += v
+	}
+
+	av := sum / float64(len(vals))
+
+	var varsum float64
+	for _, v := range vals {
+		delta := av - v
+		varsum += delta * delta
+	}
+
+	return av, math.Sqrt(varsum / float64(len(vals)))
 }
 
 type stats struct {
@@ -463,7 +481,7 @@ var importAnalyzeCmd = &cli.Command{
 		}
 
 		go func() {
-			http.ListenAndServe("localhost:6060", nil) //nolint:errcheck
+			http.ListenAndServe("localhost:6060", nil)
 		}()
 
 		fi, err := os.Open(cctx.Args().First())

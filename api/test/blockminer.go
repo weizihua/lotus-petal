@@ -41,7 +41,7 @@ func (bm *BlockMiner) MineBlocks() {
 			nulls := atomic.SwapInt64(&bm.nulls, 0)
 			if err := bm.miner.MineOne(bm.ctx, miner.MineReq{
 				InjectNulls: abi.ChainEpoch(nulls),
-				Done:        func(bool, abi.ChainEpoch, error) {},
+				Done:        func(bool, error) {},
 			}); err != nil {
 				bm.t.Error(err)
 			}

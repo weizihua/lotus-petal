@@ -76,6 +76,16 @@ func main() {
 				Usage: "enable use of GPU for mining operations",
 				Value: true,
 			},
+			&cli.BoolFlag{
+				Name: "zt",
+				Usage: "enable zero transmission (only available on cephfs)",
+				Value: false,
+			},
+			&cli.StringFlag{
+				Name: "sectors-storage",
+				Usage: "sectors storage path",
+				EnvVars: []string{"SECTORS_STORAGE_PATH"},
+			},
 		},
 
 		Commands: local,
@@ -140,6 +150,16 @@ var runCmd = &cli.Command{
 			Name:  "timeout",
 			Usage: "used when 'listen' is unspecified. must be a valid duration recognized by golang's time.ParseDuration function",
 			Value: "30m",
+		},
+		&cli.BoolFlag{
+			Name: "zt",
+			Usage: "enable zero transmission (only available on cephfs)",
+			Value: false,
+		},
+		&cli.StringFlag{
+			Name: "sectors-storage",
+			Usage: "sectors storage path",
+			EnvVars: []string{"SECTORS_STORAGE_PATH"},
 		},
 	},
 	Before: func(cctx *cli.Context) error {
@@ -240,6 +260,33 @@ var runCmd = &cli.Command{
 			return err
 		}
 
+		if err := os.Setenv("CONFIG_PATH", cctx.String(FlagWorkerRepo)); err != nil {
+			return err
+		}
+
+		if err := os.Unsetenv("USE_ZERO_TRANSMISSION"); err != nil {
+			return err
+		}
+
+		sto := cctx.String("sectors-storage")
+
+		if cctx.Bool("zt") {
+			if err := os.Setenv("USE_ZERO_TRANSMISSION", "1"); err != nil {
+				return err
+			}
+
+			if mount, exist := os.LookupEnv("CEPHFS_MOUNT_POINT"); exist && len(sto) != 0 {
+				if !strings.Contains(sto, mount) {
+					return xerrors.Errorf("worker repo is not in cephfs, can't use zero transport")
+				}
+				if err := os.Setenv("STORAGE_ROOT_PATH", strings.TrimPrefix(sto, mount)); err != nil {
+					return err
+				}
+			} else {
+				return xerrors.Errorf("use zero transport must set environment variable $CEPHFS_MOUNT_POINT and specify sectors storage path")
+			}
+		}
+
 		ok, err := r.Exists()
 		if err != nil {
 			return err
@@ -271,9 +318,15 @@ var runCmd = &cli.Command{
 					return xerrors.Errorf("persisting storage metadata (%s): %w", filepath.Join(lr.Path(), "sectorstore.json"), err)
 				}
 
-				localPaths = append(localPaths, stores.LocalPath{
-					Path: lr.Path(),
-				})
+				if len(sto) == 0 {
+					localPaths = append(localPaths, stores.LocalPath{
+						Path: lr.Path(),
+					})
+				} else {
+					localPaths = append(localPaths, stores.LocalPath{
+						Path: sto,
+					})
+				}
 			}
 
 			if err := lr.SetStorage(func(sc *stores.StorageConfig) {
@@ -317,7 +370,13 @@ var runCmd = &cli.Command{
 			}
 		}
 
-		localStore, err := stores.NewLocal(ctx, lr, nodeApi, []string{"http://" + address + "/remote"})
+		var addrs []string
+		addrs = append(addrs, "http://" + address + "/remote")
+		if cctx.Bool("zt") {
+			addrs = append(addrs, "zt:" + os.Getenv("STORAGE_ROOT_PATH"))
+		}
+
+		localStore, err := stores.NewLocal(ctx, lr, nodeApi, addrs)
 		if err != nil {
 			return err
 		}
@@ -424,7 +483,6 @@ func watchMinerConn(ctx context.Context, cctx *cli.Context, nodeApi api.StorageM
 
 		// TODO: there are probably cleaner/more graceful ways to restart,
 		//  but this is good enough for now (FSM can recover from the mess this creates)
-		//nolint:gosec
 		if err := syscall.Exec(exe, []string{exe,
 			fmt.Sprintf("--worker-repo=%s", cctx.String("worker-repo")),
 			fmt.Sprintf("--miner-repo=%s", cctx.String("miner-repo")),
@@ -438,7 +496,8 @@ func watchMinerConn(ctx context.Context, cctx *cli.Context, nodeApi api.StorageM
 			fmt.Sprintf("--precommit2=%t", cctx.Bool("precommit2")),
 			fmt.Sprintf("--commit=%t", cctx.Bool("commit")),
 			fmt.Sprintf("--parallel-fetch-limit=%d", cctx.Int("parallel-fetch-limit")),
-			fmt.Sprintf("--timeout=%s", cctx.String("timeout")),
+			fmt.Sprintf("--timeout=%s", cctx.String("timeout"),
+			fmt.Sprintf("--sectors-storage=%s", cctx.String("sectors-storage"))),
 		}, os.Environ()); err != nil {
 			fmt.Println(err)
 		}
@@ -462,7 +521,7 @@ func extractRoutableIP(timeout time.Duration) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer conn.Close() //nolint:errcheck
+	defer conn.Close()
 
 	localAddr := conn.LocalAddr().(*net.TCPAddr)
 

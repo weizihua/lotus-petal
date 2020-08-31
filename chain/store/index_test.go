@@ -42,7 +42,7 @@ func TestIndexSeeks(t *testing.T) {
 	if err := cs.PutTipSet(ctx, mock.TipSet(gen)); err != nil {
 		t.Fatal(err)
 	}
-	assert.NoError(t, cs.SetGenesis(gen))
+	cs.SetGenesis(gen)
 
 	// Put 113 blocks from genesis
 	for i := 0; i < 113; i++ {

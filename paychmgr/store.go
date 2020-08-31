@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"golang.org/x/xerrors"
-
 	"github.com/google/uuid"
 
 	"github.com/filecoin-project/lotus/chain/types"
@@ -52,6 +51,7 @@ type VoucherInfo struct {
 	Proof     []byte
 	Submitted bool
 }
+
 
 // ChannelInfo keeps track of information about a channel
 type ChannelInfo struct {

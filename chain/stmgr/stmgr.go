@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	"github.com/filecoin-project/specs-actors/actors/builtin/power"
-
 	"github.com/filecoin-project/specs-actors/actors/builtin/multisig"
 
 	"github.com/filecoin-project/go-address"
@@ -788,7 +787,7 @@ type genesisActor struct {
 	initBal abi.TokenAmount
 }
 
-// sets up information about the actors in the genesis state
+// sets up information about the non-multisig actors in the genesis state
 func (sm *StateManager) setupGenesisActors(ctx context.Context) error {
 
 	gi := genesisInfo{}
@@ -979,7 +978,7 @@ func (sm *StateManager) GetFilVested(ctx context.Context, height abi.ChainEpoch,
 		vf = big.Add(vf, au)
 	}
 
-	// there should not be any such accounts in testnet (and also none in mainnet?)
+	// these should only ever be "faucet" accounts in testnets
 	for _, v := range sm.genInfo.genesisActors {
 		act, err := st.GetActor(v.addr)
 		if err != nil {

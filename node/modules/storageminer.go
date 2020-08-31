@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"go.uber.org/fx"
@@ -480,6 +481,10 @@ func RetrievalProvider(h host.Host, miner *storage.Miner, sealer sectorstorage.S
 
 func SectorStorage(mctx helpers.MetricsCtx, lc fx.Lifecycle, ls stores.LocalStorage, si stores.SectorIndex, cfg *ffiwrapper.Config, sc sectorstorage.SealerConfig, urls sectorstorage.URLs, sa sectorstorage.StorageAuth) (*sectorstorage.Manager, error) {
 	ctx := helpers.LifecycleCtx(mctx, lc)
+
+	if _, exist := os.LookupEnv("USE_ZERO_TRANSMISSION"); exist {
+		urls = append(urls, "zt:" + os.Getenv("STORAGE_ROOT_PATH"))
+	}
 
 	sst, err := sectorstorage.New(ctx, ls, si, cfg, sc, urls, sa)
 	if err != nil {

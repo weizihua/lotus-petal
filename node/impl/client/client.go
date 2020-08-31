@@ -109,7 +109,7 @@ func (a *API) ClientStartDeal(ctx context.Context, params *api.StartDealParams) 
 				continue
 			}
 			if c.Equals(params.Data.Root) {
-				storeID = &importID //nolint
+				storeID = &importID
 				break
 			}
 		}
@@ -237,7 +237,6 @@ func (a *API) ClientGetDealUpdates(ctx context.Context) (<-chan api.DealInfo, er
 
 	return updates, nil
 }
-
 func (a *API) ClientHasLocal(ctx context.Context, root cid.Cid) (bool, error) {
 	// TODO: check if we have the ENTIRE dag
 
@@ -485,7 +484,6 @@ func readSubscribeEvents(ctx context.Context, subscribeEvents chan retrievalSubs
 		}
 	}
 }
-
 func (a *API) clientRetrieve(ctx context.Context, order api.RetrievalOrder, ref *api.FileRef, events chan marketevents.RetrievalEvent) {
 	defer close(events)
 
@@ -647,7 +645,7 @@ func (a *API) ClientCalcCommP(ctx context.Context, inpath string) (*api.CommPRet
 	if err != nil {
 		return nil, err
 	}
-	defer rdr.Close() //nolint:errcheck
+	defer rdr.Close()
 
 	stat, err := rdr.Stat()
 	if err != nil {
@@ -733,7 +731,7 @@ func (a *API) clientImport(ctx context.Context, ref api.FileRef, store *multisto
 	if err != nil {
 		return cid.Undef, err
 	}
-	defer f.Close() //nolint:errcheck
+	defer f.Close()
 
 	stat, err := f.Stat()
 	if err != nil {

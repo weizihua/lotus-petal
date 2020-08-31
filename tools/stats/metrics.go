@@ -322,7 +322,7 @@ func RecordTipsetMessagesPoints(ctx context.Context, api api.FullNode, pl *Point
 
 	for i, msg := range msgs {
 		// FIXME: use float so this doesn't overflow
-		// FIXME: this doesn't work as time points get overridden
+		// FIXME: this doesn't work as time points get overriden
 		p := NewPoint("chain.message_gaspremium", msg.Message.GasPremium.Int64())
 		pl.AddPoint(p)
 		p = NewPoint("chain.message_gasfeecap", msg.Message.GasFeeCap.Int64())

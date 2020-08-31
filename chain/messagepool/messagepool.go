@@ -231,8 +231,6 @@ func New(api Provider, ds dtypes.MetadataDS, netName dtypes.NetworkName) (*Messa
 
 	// enable initial prunes
 	mp.pruneCooldown <- struct{}{}
-
-	// load the current tipset and subscribe to head changes _before_ loading local messages
 	mp.curTs = api.SubscribeHeadChanges(func(rev, app []*types.TipSet) error {
 		err := mp.HeadChange(rev, app)
 		if err != nil {
@@ -246,7 +244,6 @@ func New(api Provider, ds dtypes.MetadataDS, netName dtypes.NetworkName) (*Messa
 	}
 
 	go mp.runLoop()
-
 	return mp, nil
 }
 
@@ -326,6 +323,7 @@ func (mp *MessagePool) Push(m *types.SignedMessage) (cid.Cid, error) {
 	}
 
 	mp.curTsLk.Lock()
+
 	if err := mp.addTs(m, mp.curTs); err != nil {
 		mp.curTsLk.Unlock()
 		return cid.Undef, err
@@ -348,7 +346,6 @@ func (mp *MessagePool) checkMessage(m *types.SignedMessage) error {
 		return xerrors.Errorf("mpool message too large (%dB): %w", m.Size(), ErrMessageTooBig)
 	}
 
-	// Perform syntactic validation, minGas=0 as we check the actual mingas before we add it
 	if err := m.Message.ValidForBlockInclusion(0); err != nil {
 		return xerrors.Errorf("message not valid for block inclusion: %w", err)
 	}

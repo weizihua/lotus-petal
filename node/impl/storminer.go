@@ -55,7 +55,6 @@ type StorageMinerAPI struct {
 	*stores.Index
 	DataTransfer dtypes.ProviderDataTransfer
 	Host         host.Host
-
 	ConsiderOnlineStorageDealsConfigFunc       dtypes.ConsiderOnlineStorageDealsConfigFunc
 	SetConsiderOnlineStorageDealsConfigFunc    dtypes.SetConsiderOnlineStorageDealsConfigFunc
 	ConsiderOnlineRetrievalDealsConfigFunc     dtypes.ConsiderOnlineRetrievalDealsConfigFunc

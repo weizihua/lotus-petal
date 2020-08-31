@@ -301,7 +301,6 @@ func MakeInitialStateTree(ctx context.Context, bs bstore.Blockstore, template ge
 	}
 
 	template.RemainderAccount.Balance = remainingFil
-
 	if err := createMultisigAccount(ctx, bs, cst, state, remAccKey, template.RemainderAccount, keyIDs); err != nil {
 		return nil, nil, xerrors.Errorf("failed to set up remainder account: %w", err)
 	}

@@ -3,13 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"golang.org/x/xerrors"
 	"os"
 	"sort"
 	"strings"
 	"text/tabwriter"
 	"time"
-
-	"golang.org/x/xerrors"
 
 	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"

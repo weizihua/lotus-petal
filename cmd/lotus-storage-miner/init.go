@@ -7,12 +7,11 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"github.com/filecoin-project/specs-actors/actors/abi/big"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
-
-	"github.com/filecoin-project/specs-actors/actors/abi/big"
 
 	"github.com/docker/go-units"
 	"github.com/google/uuid"
@@ -112,6 +111,11 @@ var initCmd = &cli.Command{
 			Name:  "from",
 			Usage: "select which address to send actor creation message from",
 		},
+		&cli.StringFlag{
+			Name: "sectors-storage",
+			Usage: "sectors storage path",
+			EnvVars: []string{"SECTORS_STORAGE_PATH"},
+		},
 	},
 	Action: func(cctx *cli.Context) error {
 		log.Info("Initializing lotus miner")
@@ -158,6 +162,9 @@ var initCmd = &cli.Command{
 
 		log.Info("Checking if repo exists")
 
+		if err := os.Setenv("CONFIG_PATH", cctx.String(FlagMinerRepo)); err != nil {
+			return err
+		}
 		repoPath := cctx.String(FlagMinerRepo)
 		r, err := repo.NewFS(repoPath)
 		if err != nil {
@@ -226,9 +233,16 @@ var initCmd = &cli.Command{
 					return xerrors.Errorf("persisting storage metadata (%s): %w", filepath.Join(lr.Path(), "sectorstore.json"), err)
 				}
 
-				localPaths = append(localPaths, stores.LocalPath{
-					Path: lr.Path(),
-				})
+				sto := cctx.String("sectors-storage")
+				if len(sto) == 0 {
+					localPaths = append(localPaths, stores.LocalPath{
+						Path: lr.Path(),
+					})
+				} else {
+					localPaths = append(localPaths, stores.LocalPath{
+						Path: sto,
+					})
+				}
 			}
 
 			if err := lr.SetStorage(func(sc *stores.StorageConfig) {
@@ -649,7 +663,6 @@ func createStorageMiner(ctx context.Context, api lapi.FullNode, peerid peer.ID, 
 		To:    builtin.StoragePowerActorAddr,
 		From:  sender,
 		Value: big.Zero(),
-
 		Method: builtin.MethodsPower.CreateMiner,
 		Params: params,
 

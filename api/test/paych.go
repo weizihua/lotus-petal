@@ -23,13 +23,14 @@ import (
 	"github.com/filecoin-project/lotus/chain/events/state"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/filecoin-project/lotus/chain/wallet"
+	"github.com/filecoin-project/lotus/miner"
 )
 
 func TestPaymentChannels(t *testing.T, b APIBuilder, blocktime time.Duration) {
 	_ = os.Setenv("BELLMAN_NO_GPU", "1")
 
 	ctx := context.Background()
-	n, sn := b(t, 2, OneMiner)
+	n, sn := b(t, 2, oneMiner)
 
 	paymentCreator := n[0]
 	paymentReceiver := n[1]
@@ -50,8 +51,8 @@ func TestPaymentChannels(t *testing.T, b APIBuilder, blocktime time.Duration) {
 	}
 
 	// start mining blocks
-	bm := NewBlockMiner(ctx, t, miner, blocktime)
-	bm.MineBlocks()
+	bm := newBlockMiner(ctx, t, miner, blocktime)
+	bm.mineBlocks()
 
 	// send some funds to register the receiver
 	receiverAddr, err := paymentReceiver.WalletNew(ctx, wallet.ActSigType("secp256k1"))
@@ -59,7 +60,7 @@ func TestPaymentChannels(t *testing.T, b APIBuilder, blocktime time.Duration) {
 		t.Fatal(err)
 	}
 
-	SendFunds(ctx, t, paymentCreator, receiverAddr, abi.NewTokenAmount(1e18))
+	sendFunds(ctx, t, paymentCreator, receiverAddr, abi.NewTokenAmount(1e18))
 
 	// setup the payment channel
 	createrAddr, err := paymentCreator.WalletDefaultAddress(ctx)
@@ -153,9 +154,6 @@ func TestPaymentChannels(t *testing.T, b APIBuilder, blocktime time.Duration) {
 	}, int(build.MessageConfidence)+1, build.SealRandomnessLookbackLimit, func(oldTs, newTs *types.TipSet) (bool, events.StateChange, error) {
 		return preds.OnPaymentChannelActorChanged(channel, preds.OnToSendAmountChanges())(ctx, oldTs.Key(), newTs.Key())
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	select {
 	case <-finished:
@@ -203,10 +201,10 @@ func TestPaymentChannels(t *testing.T, b APIBuilder, blocktime time.Duration) {
 	}
 
 	// shut down mining
-	bm.Stop()
+	bm.stop()
 }
 
-func waitForBlocks(ctx context.Context, t *testing.T, bm *BlockMiner, paymentReceiver TestNode, receiverAddr address.Address, count int) {
+func waitForBlocks(ctx context.Context, t *testing.T, bm *blockMiner, paymentReceiver TestNode, receiverAddr address.Address, count int) {
 	// We need to add null blocks in batches, if we add too many the chain can't sync
 	batchSize := 60
 	for i := 0; i < count; i += batchSize {
@@ -250,4 +248,74 @@ func waitForMessage(ctx context.Context, t *testing.T, paymentCreator TestNode, 
 	}
 	fmt.Println("Confirmed", desc)
 	return res
+}
+
+type blockMiner struct {
+	ctx       context.Context
+	t         *testing.T
+	miner     TestStorageNode
+	blocktime time.Duration
+	mine      int64
+	nulls     int64
+	done      chan struct{}
+}
+
+func newBlockMiner(ctx context.Context, t *testing.T, miner TestStorageNode, blocktime time.Duration) *blockMiner {
+	return &blockMiner{
+		ctx:       ctx,
+		t:         t,
+		miner:     miner,
+		blocktime: blocktime,
+		mine:      int64(1),
+		done:      make(chan struct{}),
+	}
+}
+
+func (bm *blockMiner) mineBlocks() {
+	time.Sleep(time.Second)
+	go func() {
+		defer close(bm.done)
+		for atomic.LoadInt64(&bm.mine) == 1 {
+			time.Sleep(bm.blocktime)
+			nulls := atomic.SwapInt64(&bm.nulls, 0)
+			if err := bm.miner.MineOne(bm.ctx, miner.MineReq{
+				InjectNulls: abi.ChainEpoch(nulls),
+				Done:        func(bool, error) {},
+			}); err != nil {
+				bm.t.Error(err)
+			}
+		}
+	}()
+}
+
+func (bm *blockMiner) stop() {
+	atomic.AddInt64(&bm.mine, -1)
+	fmt.Println("shutting down mining")
+	<-bm.done
+}
+
+func sendFunds(ctx context.Context, t *testing.T, sender TestNode, addr address.Address, amount abi.TokenAmount) {
+
+	senderAddr, err := sender.WalletDefaultAddress(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	msg := &types.Message{
+		From:  senderAddr,
+		To:    addr,
+		Value: amount,
+	}
+
+	sm, err := sender.MpoolPushMessage(ctx, msg, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := sender.StateWaitMsg(ctx, sm.Cid(), 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Receipt.ExitCode != 0 {
+		t.Fatal("did not successfully send money")
+	}
 }

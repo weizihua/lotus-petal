@@ -5,7 +5,6 @@ package storageadapter
 import (
 	"bytes"
 	"context"
-
 	"github.com/filecoin-project/specs-actors/actors/abi/big"
 
 	"golang.org/x/xerrors"

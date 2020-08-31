@@ -20,7 +20,6 @@ import (
 	"github.com/filecoin-project/lotus/node/impl"
 )
 
-//nolint:deadcode,varcheck
 var log = logging.Logger("apitest")
 
 func (ts *testSuite) testMining(t *testing.T) {
@@ -31,20 +30,22 @@ func (ts *testSuite) testMining(t *testing.T) {
 	newHeads, err := api.ChainNotify(ctx)
 	require.NoError(t, err)
 	initHead := (<-newHeads)[0]
-	baseHeight := initHead.Val.Height()
+	if initHead.Val.Height() != 2 {
+		<-newHeads
+	}
 
 	h1, err := api.ChainHead(ctx)
 	require.NoError(t, err)
-	require.Equal(t, int64(h1.Height()), int64(baseHeight))
+	require.Equal(t, abi.ChainEpoch(2), h1.Height())
 
-	MineUntilBlock(ctx, t, apis[0], sn[0], nil)
+	err = sn[0].MineOne(ctx, MineNext)
 	require.NoError(t, err)
 
 	<-newHeads
 
 	h2, err := api.ChainHead(ctx)
 	require.NoError(t, err)
-	require.Greater(t, int64(h2.Height()), int64(h1.Height()))
+	require.Equal(t, abi.ChainEpoch(3), h2.Height())
 }
 
 func (ts *testSuite) testMiningReal(t *testing.T) {
@@ -68,7 +69,7 @@ func (ts *testSuite) testMiningReal(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, abi.ChainEpoch(2), h1.Height())
 
-	MineUntilBlock(ctx, t, apis[0], sn[0], nil)
+	err = sn[0].MineOne(ctx, MineNext)
 	require.NoError(t, err)
 
 	<-newHeads
@@ -77,7 +78,7 @@ func (ts *testSuite) testMiningReal(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, abi.ChainEpoch(3), h2.Height())
 
-	MineUntilBlock(ctx, t, apis[0], sn[0], nil)
+	err = sn[0].MineOne(ctx, MineNext)
 	require.NoError(t, err)
 
 	<-newHeads
@@ -142,7 +143,7 @@ func TestDealMining(t *testing.T, b APIBuilder, blocktime time.Duration, carExpo
 		complChan := minedTwo
 		for atomic.LoadInt32(&mine) != 0 {
 			wait := make(chan int)
-			mdone := func(mined bool, _ abi.ChainEpoch, err error) {
+			mdone := func(mined bool, err error) {
 				n := 0
 				if mined {
 					n = 1

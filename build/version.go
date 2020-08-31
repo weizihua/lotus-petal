@@ -4,6 +4,7 @@ import "fmt"
 
 var CurrentCommit string
 var BuildType int
+var Feature string
 
 const (
 	BuildDefault = 0
