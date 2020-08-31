@@ -1,9 +1,0 @@
-[submodule "extern/filecoin-ffi"]
-	path = extern/filecoin-ffi
-	url = https://github.com/s1m0n21/petal-filecoin-ffi.git
-[submodule "extern/serialization-vectors"]
-	path = extern/serialization-vectors
-	url = https://github.com/filecoin-project/serialization-vectors
-[submodule "extern/extern/test-vectors"]
-	path = extern/extern/test-vectors
-	url = https://github.com/filecoin-project/test-vectors.git
