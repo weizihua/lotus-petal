@@ -496,7 +496,7 @@ func (mp *MessagePool) selectPriorityMessages(pending map[address.Address]map[ui
 
 tailLoop:
 	for gasLimit >= minGas && last < len(chains) {
-		// trim, without discarding negative performing messages
+		// trim, discarding negative performing messages
 		chains[last].Trim(gasLimit, mp, baseFee, ts)
 
 		// push down if it hasn't been invalidated

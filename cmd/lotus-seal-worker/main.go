@@ -47,8 +47,6 @@ const FlagWorkerRepoDeprecation = "workerrepo"
 func main() {
 	lotuslog.SetupLogLevels()
 
-	log.Info("Starting lotus worker")
-
 	local := []*cli.Command{
 		runCmd,
 		infoCmd,
@@ -176,7 +174,6 @@ var runCmd = &cli.Command{
 		return nil
 	},
 	Action: func(cctx *cli.Context) error {
-		log.Info("Starting lotus worker")
 		if !cctx.Bool("enable-gpu-proving") {
 			if err := os.Setenv("BELLMAN_NO_GPU", "true"); err != nil {
 				return xerrors.Errorf("could not set no-gpu env: %+v", err)

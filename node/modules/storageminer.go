@@ -283,6 +283,7 @@ func StagingDAG(mctx helpers.MetricsCtx, lc fx.Lifecycle, ibs dtypes.StagingBloc
 
 	lc.Append(fx.Hook{
 		OnStop: func(_ context.Context) error {
+			// blockservice closes the exchange
 			return bsvc.Close()
 		},
 	})
