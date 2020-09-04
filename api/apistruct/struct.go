@@ -6,8 +6,10 @@ import (
 	"time"
 
 	"github.com/ipfs/go-cid"
+	metrics "github.com/libp2p/go-libp2p-core/metrics"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
+	protocol "github.com/libp2p/go-libp2p-core/protocol"
 
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-fil-markets/piecestore"
@@ -42,14 +44,17 @@ type CommonStruct struct {
 		AuthVerify func(ctx context.Context, token string) ([]auth.Permission, error) `perm:"read"`
 		AuthNew    func(ctx context.Context, perms []auth.Permission) ([]byte, error) `perm:"admin"`
 
-		NetConnectedness func(context.Context, peer.ID) (network.Connectedness, error) `perm:"read"`
-		NetPeers         func(context.Context) ([]peer.AddrInfo, error)                `perm:"read"`
-		NetConnect       func(context.Context, peer.AddrInfo) error                    `perm:"write"`
-		NetAddrsListen   func(context.Context) (peer.AddrInfo, error)                  `perm:"read"`
-		NetDisconnect    func(context.Context, peer.ID) error                          `perm:"write"`
-		NetFindPeer      func(context.Context, peer.ID) (peer.AddrInfo, error)         `perm:"read"`
-		NetPubsubScores  func(context.Context) ([]api.PubsubScore, error)              `perm:"read"`
-		NetAutoNatStatus func(context.Context) (api.NatInfo, error)                    `perm:"read"`
+		NetConnectedness            func(context.Context, peer.ID) (network.Connectedness, error)    `perm:"read"`
+		NetPeers                    func(context.Context) ([]peer.AddrInfo, error)                   `perm:"read"`
+		NetConnect                  func(context.Context, peer.AddrInfo) error                       `perm:"write"`
+		NetAddrsListen              func(context.Context) (peer.AddrInfo, error)                     `perm:"read"`
+		NetDisconnect               func(context.Context, peer.ID) error                             `perm:"write"`
+		NetFindPeer                 func(context.Context, peer.ID) (peer.AddrInfo, error)            `perm:"read"`
+		NetPubsubScores             func(context.Context) ([]api.PubsubScore, error)                 `perm:"read"`
+		NetAutoNatStatus            func(context.Context) (api.NatInfo, error)                       `perm:"read"`
+		NetBandwidthStats           func(ctx context.Context) (metrics.Stats, error)                 `perm:"read"`
+		NetBandwidthStatsByPeer     func(ctx context.Context) (map[string]metrics.Stats, error)      `perm:"read"`
+		NetBandwidthStatsByProtocol func(ctx context.Context) (map[protocol.ID]metrics.Stats, error) `perm:"read"`
 
 		ID      func(context.Context) (peer.ID, error)     `perm:"read"`
 		Version func(context.Context) (api.Version, error) `perm:"read"`
@@ -86,7 +91,7 @@ type FullNodeStruct struct {
 		ChainGetNode                  func(ctx context.Context, p string) (*api.IpldObject, error)                                                       `perm:"read"`
 		ChainGetMessage               func(context.Context, cid.Cid) (*types.Message, error)                                                             `perm:"read"`
 		ChainGetPath                  func(context.Context, types.TipSetKey, types.TipSetKey) ([]*api.HeadChange, error)                                 `perm:"read"`
-		ChainExport                   func(context.Context, types.TipSetKey) (<-chan []byte, error)                                                      `perm:"read"`
+		ChainExport                   func(context.Context, abi.ChainEpoch, types.TipSetKey) (<-chan []byte, error)                                      `perm:"read"`
 
 		BeaconGetEntry func(ctx context.Context, epoch abi.ChainEpoch) (*types.BeaconEntry, error) `perm:"read"`
 
@@ -371,6 +376,18 @@ func (c *CommonStruct) NetAutoNatStatus(ctx context.Context) (api.NatInfo, error
 	return c.Internal.NetAutoNatStatus(ctx)
 }
 
+func (c *CommonStruct) NetBandwidthStats(ctx context.Context) (metrics.Stats, error) {
+	return c.Internal.NetBandwidthStats(ctx)
+}
+
+func (c *CommonStruct) NetBandwidthStatsByPeer(ctx context.Context) (map[string]metrics.Stats, error) {
+	return c.Internal.NetBandwidthStatsByPeer(ctx)
+}
+
+func (c *CommonStruct) NetBandwidthStatsByProtocol(ctx context.Context) (map[protocol.ID]metrics.Stats, error) {
+	return c.Internal.NetBandwidthStatsByProtocol(ctx)
+}
+
 // ID implements API.ID
 func (c *CommonStruct) ID(ctx context.Context) (peer.ID, error) {
 	return c.Internal.ID(ctx)
@@ -653,8 +670,8 @@ func (c *FullNodeStruct) ChainGetPath(ctx context.Context, from types.TipSetKey,
 	return c.Internal.ChainGetPath(ctx, from, to)
 }
 
-func (c *FullNodeStruct) ChainExport(ctx context.Context, tsk types.TipSetKey) (<-chan []byte, error) {
-	return c.Internal.ChainExport(ctx, tsk)
+func (c *FullNodeStruct) ChainExport(ctx context.Context, nroots abi.ChainEpoch, tsk types.TipSetKey) (<-chan []byte, error) {
+	return c.Internal.ChainExport(ctx, nroots, tsk)
 }
 
 func (c *FullNodeStruct) BeaconGetEntry(ctx context.Context, epoch abi.ChainEpoch) (*types.BeaconEntry, error) {

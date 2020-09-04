@@ -85,6 +85,9 @@
 * [Net](#Net)
   * [NetAddrsListen](#NetAddrsListen)
   * [NetAutoNatStatus](#NetAutoNatStatus)
+  * [NetBandwidthStats](#NetBandwidthStats)
+  * [NetBandwidthStatsByPeer](#NetBandwidthStatsByPeer)
+  * [NetBandwidthStatsByProtocol](#NetBandwidthStatsByProtocol)
   * [NetConnect](#NetConnect)
   * [NetConnectedness](#NetConnectedness)
   * [NetDisconnect](#NetDisconnect)
@@ -268,6 +271,9 @@ blockchain, but that do not require any form of state computation.
 
 ### ChainExport
 ChainExport returns a stream of bytes with CAR dump of chain data.
+The exported chain data includes the header chain from the given tipset
+back to genesis, the entire genesis state, and the most recent 'nroots'
+state trees.
 
 
 Perms: read
@@ -275,6 +281,7 @@ Perms: read
 Inputs:
 ```json
 [
+  10101,
   [
     {
       "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
@@ -2052,6 +2059,61 @@ Response:
 {
   "Reachability": 1,
   "PublicAddr": "string value"
+}
+```
+
+### NetBandwidthStats
+
+
+Perms: read
+
+Inputs: `null`
+
+Response:
+```json
+{
+  "TotalIn": 9,
+  "TotalOut": 9,
+  "RateIn": 12.3,
+  "RateOut": 12.3
+}
+```
+
+### NetBandwidthStatsByPeer
+
+
+Perms: read
+
+Inputs: `null`
+
+Response:
+```json
+{
+  "12D3KooWSXmXLJmBR1M7i9RW9GQPNUhZSzXKzxDHWtAgNuJAbyEJ": {
+    "TotalIn": 174000,
+    "TotalOut": 12500,
+    "RateIn": 100,
+    "RateOut": 50
+  }
+}
+```
+
+### NetBandwidthStatsByProtocol
+
+
+Perms: read
+
+Inputs: `null`
+
+Response:
+```json
+{
+  "/fil/hello/1.0.0": {
+    "TotalIn": 174000,
+    "TotalOut": 12500,
+    "RateIn": 100,
+    "RateOut": 50
+  }
 }
 ```
 
