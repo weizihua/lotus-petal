@@ -144,8 +144,9 @@ func (st *Local) OpenPath(ctx context.Context, p string) error {
 	st.localLk.Lock()
 	defer st.localLk.Unlock()
 
-	cfgp := p
-	if _, exist := os.LookupEnv("USE_ZERO_TRANSMISSION"); exist && len(os.Getenv("CONFIG_PATH")) != 0 {
+	cfgp := os.Getenv("CONFIG_PATH")
+
+	if _, exist := os.LookupEnv("USE_ZERO_TRANSMISSION"); exist {
 		cfgp = os.Getenv("CONFIG_PATH")
 
 		_, err := os.Stat(p)
