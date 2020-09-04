@@ -496,4 +496,8 @@ func (sm *StorageMinerAPI) PiecesGetCIDInfo(ctx context.Context, payloadCid cid.
 	return &ci, nil
 }
 
+func (sm *StorageMinerAPI) SchedQueue(ctx context.Context) []sectorstorage.Task {
+	return sm.StorageMgr.SchedQueue()
+}
+
 var _ api.StorageMiner = &StorageMinerAPI{}

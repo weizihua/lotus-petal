@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"context"
+	sectorstorage "github.com/filecoin-project/lotus/extern/sector-storage"
 	"time"
 
 	"github.com/ipfs/go-cid"
@@ -101,6 +102,8 @@ type StorageMiner interface {
 	PiecesListCidInfos(ctx context.Context) ([]cid.Cid, error)
 	PiecesGetPieceInfo(ctx context.Context, pieceCid cid.Cid) (*piecestore.PieceInfo, error)
 	PiecesGetCIDInfo(ctx context.Context, payloadCid cid.Cid) (*piecestore.CIDInfo, error)
+
+	SchedQueue(ctx context.Context) []sectorstorage.Task
 }
 
 type SealRes struct {

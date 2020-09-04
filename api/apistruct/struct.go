@@ -2,6 +2,7 @@ package apistruct
 
 import (
 	"context"
+	sectorstorage "github.com/filecoin-project/lotus/extern/sector-storage"
 	"io"
 	"time"
 
@@ -296,6 +297,8 @@ type StorageMinerStruct struct {
 		PiecesListCidInfos func(ctx context.Context) ([]cid.Cid, error)                               `perm:"read"`
 		PiecesGetPieceInfo func(ctx context.Context, pieceCid cid.Cid) (*piecestore.PieceInfo, error) `perm:"read"`
 		PiecesGetCIDInfo   func(ctx context.Context, payloadCid cid.Cid) (*piecestore.CIDInfo, error) `perm:"read"`
+
+		SchedQueue func(ctx context.Context) []sectorstorage.Task `perm:"admin"`
 	}
 }
 
@@ -1168,6 +1171,10 @@ func (c *StorageMinerStruct) PiecesGetPieceInfo(ctx context.Context, pieceCid ci
 
 func (c *StorageMinerStruct) PiecesGetCIDInfo(ctx context.Context, payloadCid cid.Cid) (*piecestore.CIDInfo, error) {
 	return c.Internal.PiecesGetCIDInfo(ctx, payloadCid)
+}
+
+func (c *StorageMinerStruct) SchedQueue(ctx context.Context) []sectorstorage.Task {
+	return c.Internal.SchedQueue(ctx)
 }
 
 // WorkerStruct

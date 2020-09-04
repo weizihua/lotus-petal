@@ -102,6 +102,7 @@ require (
 	github.com/libp2p/go-maddr-filter v0.1.0
 	github.com/minio/blake2b-simd v0.0.0-20160723061019-3f5f724cb5b1
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/modood/table v0.0.0-20200225102042-88de94bb9876
 	github.com/multiformats/go-base32 v0.0.3
 	github.com/multiformats/go-multiaddr v0.3.1
 	github.com/multiformats/go-multiaddr-dns v0.2.0

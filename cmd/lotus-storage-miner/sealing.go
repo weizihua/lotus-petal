@@ -14,11 +14,24 @@ import (
 	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
 
+	"github.com/filecoin-project/lotus/extern/sector-storage/sealtasks"
 	"github.com/filecoin-project/lotus/extern/sector-storage/storiface"
 
 	"github.com/filecoin-project/lotus/chain/types"
 	lcli "github.com/filecoin-project/lotus/cli"
+	"github.com/modood/table"
 )
+type taskLoadTable struct {
+	AddPiece     uint64
+	PreCommit1   uint64
+	PreCommit2   uint64
+	Commit1      uint64
+	Commit2      uint64
+	Finalize     uint64
+	Fetch        uint64
+	Unseal       uint64
+	ReadUnsealed uint64
+}
 
 var sealingCmd = &cli.Command{
 	Name:  "sealing",
@@ -27,6 +40,8 @@ var sealingCmd = &cli.Command{
 		sealingJobsCmd,
 		sealingWorkersCmd,
 		sealingSchedDiagCmd,
+		sealingWorkerLoad,
+		sealingQueueCmd,
 	},
 }
 
@@ -210,6 +225,89 @@ var sealingSchedDiagCmd = &cli.Command{
 		}
 
 		fmt.Println(string(j))
+
+		return nil
+	},
+}
+
+var sealingWorkerLoad = &cli.Command{
+	Name:  "load",
+	Usage: "Print workers load",
+	Action: func(cctx *cli.Context) error {
+		nodeApi, closer, err := lcli.GetStorageMinerAPI(cctx)
+		if err != nil {
+			return err
+		}
+		defer closer()
+
+		jobs, err := nodeApi.WorkerJobs(lcli.ReqContext(cctx))
+		if err != nil {
+			return err
+		}
+
+		hostnames := map[uint64]string{}
+
+		wst, err := nodeApi.WorkerStats(lcli.ReqContext(cctx))
+		if err != nil {
+			return xerrors.Errorf("getting worker stats: %w", err)
+		}
+
+		for wid, st := range wst {
+			hostnames[wid] = st.Info.Hostname
+		}
+
+		for w, wj := range jobs {
+			loads := map[sealtasks.TaskType]uint64{}
+
+			for _, j := range wj {
+				loads[j.Task] += 1
+			}
+
+			fmt.Printf("worker %s(%d):\n", hostnames[w], w)
+			loadsTab := []taskLoadTable{
+				{
+					func() uint64 {if load,ok := loads[sealtasks.TTAddPiece];ok{return load}else{return 0}}(),
+					func() uint64 {if load,ok := loads[sealtasks.TTPreCommit1];ok{return load}else{return 0}}(),
+					func() uint64 {if load,ok := loads[sealtasks.TTPreCommit2];ok{return load}else{return 0}}(),
+					func() uint64 {if load,ok := loads[sealtasks.TTCommit1];ok{return load}else{return 0}}(),
+					func() uint64 {if load,ok := loads[sealtasks.TTCommit2];ok{return load}else{return 0}}(),
+					func() uint64 {if load,ok := loads[sealtasks.TTFinalize];ok{return load}else{return 0}}(),
+					func() uint64 {if load,ok := loads[sealtasks.TTFetch];ok{return load}else{return 0}}(),
+					func() uint64 {if load,ok := loads[sealtasks.TTUnseal];ok{return load}else{return 0}}(),
+					func() uint64 {if load,ok := loads[sealtasks.TTReadUnsealed];ok{return load}else{return 0}}(),
+				},
+			}
+			table.Output(loadsTab)
+		}
+
+		return nil
+	},
+}
+
+var sealingQueueCmd = &cli.Command{
+	Name: "sched-queue",
+	Usage: "Print task queue",
+	Action: func(cctx *cli.Context) error {
+		api, closer, err := lcli.GetStorageMinerAPI(cctx)
+		if err != nil {
+			return err
+		}
+		defer closer()
+
+		queue := api.SchedQueue(lcli.ReqContext(cctx))
+		if len(queue) == 0 {
+			fmt.Println("Task queue is empty")
+		} else  {
+			for i, t := range queue {
+				fmt.Printf("========== %d ==========\n", i)
+				fmt.Printf("sector:\t%d\n", uint64(t.SectorID.Number))
+				fmt.Printf("task type:\t%s\n", string(t.TaskType))
+				fmt.Printf("priority:\t%d\n", t.Priority)
+				fmt.Printf("index:\t%d\n", t.Index)
+				fmt.Printf("index heap:\t%d\n", t.IndexHeap)
+				fmt.Printf("start:\t%s\n", t.Start.String())
+			}
+		}
 
 		return nil
 	},

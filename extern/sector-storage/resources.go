@@ -23,7 +23,7 @@ func (r Resources) MultiThread() bool {
 var ResourceTable = map[sealtasks.TaskType]map[abi.RegisteredSealProof]Resources{
 	sealtasks.TTAddPiece: {
 		abi.RegisteredSealProof_StackedDrg64GiBV1: Resources{
-			MaxMemory: 8 << 30,
+			MaxMemory: 8 << 30, // 8GiB
 			MinMemory: 8 << 30,
 
 			Threads: 1,
@@ -31,7 +31,7 @@ var ResourceTable = map[sealtasks.TaskType]map[abi.RegisteredSealProof]Resources
 			BaseMinMemory: 1 << 30,
 		},
 		abi.RegisteredSealProof_StackedDrg32GiBV1: Resources{
-			MaxMemory: 4 << 30,
+			MaxMemory: 4 << 30, // 4GiB
 			MinMemory: 4 << 30,
 
 			Threads: 1,
@@ -39,7 +39,7 @@ var ResourceTable = map[sealtasks.TaskType]map[abi.RegisteredSealProof]Resources
 			BaseMinMemory: 1 << 30,
 		},
 		abi.RegisteredSealProof_StackedDrg512MiBV1: Resources{
-			MaxMemory: 1 << 30,
+			MaxMemory: 1 << 30, // 1GiB
 			MinMemory: 1 << 30,
 
 			Threads: 1,
@@ -47,7 +47,7 @@ var ResourceTable = map[sealtasks.TaskType]map[abi.RegisteredSealProof]Resources
 			BaseMinMemory: 1 << 30,
 		},
 		abi.RegisteredSealProof_StackedDrg2KiBV1: Resources{
-			MaxMemory: 2 << 10,
+			MaxMemory: 2 << 10, // 2KiB
 			MinMemory: 2 << 10,
 
 			Threads: 1,
@@ -55,7 +55,7 @@ var ResourceTable = map[sealtasks.TaskType]map[abi.RegisteredSealProof]Resources
 			BaseMinMemory: 2 << 10,
 		},
 		abi.RegisteredSealProof_StackedDrg8MiBV1: Resources{
-			MaxMemory: 8 << 20,
+			MaxMemory: 8 << 20, // 8MiB
 			MinMemory: 8 << 20,
 
 			Threads: 1,
@@ -65,16 +65,16 @@ var ResourceTable = map[sealtasks.TaskType]map[abi.RegisteredSealProof]Resources
 	},
 	sealtasks.TTPreCommit1: {
 		abi.RegisteredSealProof_StackedDrg64GiBV1: Resources{
-			MaxMemory: 128 << 30,
-			MinMemory: 112 << 30,
+			MaxMemory: 128 << 30, // 128 GiB
+			MinMemory: 112 << 30, // 112 GiB
 
 			Threads: 1,
 
 			BaseMinMemory: 10 << 20,
 		},
 		abi.RegisteredSealProof_StackedDrg32GiBV1: Resources{
-			MaxMemory: 64 << 30,
-			MinMemory: 56 << 30,
+			MaxMemory: 64 << 30, // 64GiB
+			MinMemory: 56 << 30, // 56GiB
 
 			Threads: 1,
 

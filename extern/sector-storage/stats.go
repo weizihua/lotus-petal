@@ -1,8 +1,21 @@
 package sectorstorage
 
 import (
+	"time"
+
+	"github.com/filecoin-project/lotus/extern/sector-storage/sealtasks"
 	"github.com/filecoin-project/lotus/extern/sector-storage/storiface"
+	"github.com/filecoin-project/specs-actors/actors/abi"
 )
+
+type Task struct {
+	SectorID  abi.SectorID
+	TaskType  sealtasks.TaskType
+	Priority  int
+	Start     time.Time
+	Index     int
+	IndexHeap int
+}
 
 func (m *Manager) WorkerStats() map[uint64]storiface.WorkerStats {
 	m.sched.workersLk.RLock()
@@ -48,4 +61,26 @@ func (m *Manager) WorkerJobs() map[uint64][]storiface.WorkerJob {
 	}
 
 	return out
+}
+
+func (m *Manager) SchedQueue() []Task {
+	var tasks = make([]Task, 0)
+
+	m.sched.workersLk.RLock()
+	defer m.sched.workersLk.RUnlock()
+
+	if m.sched.schedQueue != nil {
+		for _, r := range *m.sched.schedQueue {
+			tasks = append(tasks, Task{
+				SectorID:  r.sector,
+				TaskType:  r.taskType,
+				Priority:  r.priority,
+				Start:     r.start,
+				Index:     r.index,
+				IndexHeap: r.indexHeap,
+			})
+		}
+	}
+
+	return tasks
 }
