@@ -46,6 +46,7 @@
   * [ClientQueryAsk](#ClientQueryAsk)
   * [ClientRemoveImport](#ClientRemoveImport)
   * [ClientRetrieve](#ClientRetrieve)
+  * [ClientRetrieveTryRestartInsufficientFunds](#ClientRetrieveTryRestartInsufficientFunds)
   * [ClientRetrieveWithEvents](#ClientRetrieveWithEvents)
   * [ClientStartDeal](#ClientStartDeal)
 * [Gas](#Gas)
@@ -84,6 +85,7 @@
   * [MsigSwapPropose](#MsigSwapPropose)
 * [Net](#Net)
   * [NetAddrsListen](#NetAddrsListen)
+  * [NetAgentVersion](#NetAgentVersion)
   * [NetAutoNatStatus](#NetAutoNatStatus)
   * [NetBandwidthStats](#NetBandwidthStats)
   * [NetBandwidthStatsByPeer](#NetBandwidthStatsByPeer)
@@ -96,6 +98,8 @@
   * [NetPubsubScores](#NetPubsubScores)
 * [Paych](#Paych)
   * [PaychAllocateLane](#PaychAllocateLane)
+  * [PaychAvailableFunds](#PaychAvailableFunds)
+  * [PaychAvailableFundsByFromTo](#PaychAvailableFundsByFromTo)
   * [PaychCollect](#PaychCollect)
   * [PaychGet](#PaychGet)
   * [PaychGetWaitReady](#PaychGetWaitReady)
@@ -1156,6 +1160,22 @@ Inputs:
 
 Response: `{}`
 
+### ClientRetrieveTryRestartInsufficientFunds
+ClientRetrieveTryRestartInsufficientFunds attempts to restart stalled retrievals on a given payment channel
+which are stuck due to insufficient funds
+
+
+Perms: write
+
+Inputs:
+```json
+[
+  "t01234"
+]
+```
+
+Response: `{}`
+
 ### ClientRetrieveWithEvents
 ClientRetrieveWithEvents initiates the retrieval of a file, as specified in the order, and provides a channel
 of status updates.
@@ -2047,6 +2067,20 @@ Response:
 }
 ```
 
+### NetAgentVersion
+
+
+Perms: read
+
+Inputs:
+```json
+[
+  "12D3KooWGzxzKZYveHXtpG6AsrUJBcWxHBFS2HsEoGTxrMLvKXtf"
+]
+```
+
+Response: `"string value"`
+
 ### NetAutoNatStatus
 
 
@@ -2217,6 +2251,53 @@ Inputs:
 ```
 
 Response: `42`
+
+### PaychAvailableFunds
+There are not yet any comments for this method.
+
+Perms: sign
+
+Inputs: `null`
+
+Response:
+```json
+{
+  "Channel": "\u003cempty\u003e",
+  "From": "t01234",
+  "To": "t01234",
+  "ConfirmedAmt": "0",
+  "PendingAmt": "0",
+  "PendingWaitSentinel": null,
+  "QueuedAmt": "0",
+  "VoucherReedeemedAmt": "0"
+}
+```
+
+### PaychAvailableFundsByFromTo
+There are not yet any comments for this method.
+
+Perms: sign
+
+Inputs:
+```json
+[
+  "t01234"
+]
+```
+
+Response:
+```json
+{
+  "Channel": "\u003cempty\u003e",
+  "From": "t01234",
+  "To": "t01234",
+  "ConfirmedAmt": "0",
+  "PendingAmt": "0",
+  "PendingWaitSentinel": null,
+  "QueuedAmt": "0",
+  "VoucherReedeemedAmt": "0"
+}
+```
 
 ### PaychCollect
 There are not yet any comments for this method.
@@ -2473,24 +2554,27 @@ Inputs:
 Response:
 ```json
 {
-  "ChannelAddr": "t01234",
-  "TimeLockMin": 10101,
-  "TimeLockMax": 10101,
-  "SecretPreimage": "Ynl0ZSBhcnJheQ==",
-  "Extra": {
-    "Actor": "t01234",
-    "Method": 1,
-    "Data": "Ynl0ZSBhcnJheQ=="
+  "Voucher": {
+    "ChannelAddr": "t01234",
+    "TimeLockMin": 10101,
+    "TimeLockMax": 10101,
+    "SecretPreimage": "Ynl0ZSBhcnJheQ==",
+    "Extra": {
+      "Actor": "t01234",
+      "Method": 1,
+      "Data": "Ynl0ZSBhcnJheQ=="
+    },
+    "Lane": 42,
+    "Nonce": 42,
+    "Amount": "0",
+    "MinSettleHeight": 10101,
+    "Merges": null,
+    "Signature": {
+      "Type": 2,
+      "Data": "Ynl0ZSBhcnJheQ=="
+    }
   },
-  "Lane": 42,
-  "Nonce": 42,
-  "Amount": "0",
-  "MinSettleHeight": 10101,
-  "Merges": null,
-  "Signature": {
-    "Type": 2,
-    "Data": "Ynl0ZSBhcnJheQ=="
-  }
+  "Shortfall": "0"
 }
 ```
 
