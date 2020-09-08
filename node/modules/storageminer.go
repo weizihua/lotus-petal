@@ -167,7 +167,7 @@ func StorageMiner(fc config.MinerFeeConfig) func(mctx helpers.MetricsCtx, lc fx.
 			return nil, err
 		}
 
-		sm, err := storage.NewMiner(api, maddr, worker, h, ds, sealer, sc, verif, gsd, fc)
+		sm, err := storage.NewMiner(api, maddr, worker, h, ds, sealer, sc, verif, gsd, fc, *fps)
 		if err != nil {
 			return nil, err
 		}

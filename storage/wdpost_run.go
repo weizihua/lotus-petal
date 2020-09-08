@@ -35,6 +35,7 @@ func (s *WindowPoStScheduler) failPost(deadline *miner.DeadlineInfo) {
 }
 
 func (s *WindowPoStScheduler) doPost(ctx context.Context, deadline *miner.DeadlineInfo, ts *types.TipSet) {
+	log.Infof("doing windowPoSt")
 	ctx, abort := context.WithCancel(ctx)
 
 	s.abort = abort
@@ -46,11 +47,14 @@ func (s *WindowPoStScheduler) doPost(ctx context.Context, deadline *miner.Deadli
 		ctx, span := trace.StartSpan(ctx, "WindowPoStScheduler.doPost")
 		defer span.End()
 
+		log.Infof("call runPoSt")
 		proof, err := s.runPost(ctx, *deadline, ts)
+		log.Warnf("runPoSt err: %s", err)
 		switch err {
 		case errNoPartitions:
 			return
 		case nil:
+			log.Infof("proof: %+v", proof)
 			if err := s.submitPost(ctx, proof); err != nil {
 				log.Errorf("submitPost failed: %+v", err)
 				s.failPost(deadline)
@@ -285,6 +289,8 @@ func (s *WindowPoStScheduler) checkNextFaults(ctx context.Context, dlIdx uint64,
 }
 
 func (s *WindowPoStScheduler) runPost(ctx context.Context, di miner.DeadlineInfo, ts *types.TipSet) (*miner.SubmitWindowedPoStParams, error) {
+	log.Infof("run windowPoSt")
+
 	ctx, span := trace.StartSpan(ctx, "storage.runPost")
 	defer span.End()
 
@@ -326,6 +332,8 @@ func (s *WindowPoStScheduler) runPost(ctx context.Context, di miner.DeadlineInfo
 	if err != nil {
 		return nil, xerrors.Errorf("getting partitions: %w", err)
 	}
+
+	log.Infof("partitions: %+v", partitions)
 
 	params := &miner.SubmitWindowedPoStParams{
 		Deadline:   di.Index,
@@ -404,10 +412,15 @@ func (s *WindowPoStScheduler) runPost(ctx context.Context, di miner.DeadlineInfo
 		return nil, err
 	}
 
+	st := time.Now()
+	log.Infof("start generating windowPoSt")
+
 	postOut, postSkipped, err := s.prover.GenerateWindowPoSt(ctx, abi.ActorID(mid), sinfos, abi.PoStRandomness(rand))
 	if err != nil {
 		return nil, xerrors.Errorf("running post failed: %w", err)
 	}
+
+	log.Infof("generate windowPoSt use %s", time.Now().Sub(st))
 
 	if len(postOut) == 0 {
 		return nil, xerrors.Errorf("received proofs back from generate window post")

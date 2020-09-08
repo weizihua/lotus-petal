@@ -26,6 +26,7 @@ var provingCmd = &cli.Command{
 		provingInfoCmd,
 		provingDeadlinesCmd,
 		provingFaultsCmd,
+		provingTryRecoverCmd,
 	},
 }
 
@@ -338,5 +339,19 @@ var provingDeadlinesCmd = &cli.Command{
 		}
 
 		return tw.Flush()
+	},
+}
+
+var provingTryRecoverCmd = &cli.Command{
+	Name: "try-recover",
+	Usage: "try to recover lost power",
+	Action: func(cctx *cli.Context) error {
+		api, closer, err := lcli.GetStorageMinerAPI(cctx)
+		if err != nil {
+			return err
+		}
+		defer closer()
+
+		return api.ProvingTryRecover(lcli.ReqContext(cctx))
 	},
 }

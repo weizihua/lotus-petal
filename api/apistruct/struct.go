@@ -304,6 +304,8 @@ type StorageMinerStruct struct {
 		PiecesGetCIDInfo   func(ctx context.Context, payloadCid cid.Cid) (*piecestore.CIDInfo, error) `perm:"read"`
 
 		SchedQueue func(ctx context.Context) []sectorstorage.Task `perm:"admin"`
+
+		ProvingTryRecover func(ctx context.Context) error `perm:"admin"`
 	}
 }
 
@@ -1192,6 +1194,10 @@ func (c *StorageMinerStruct) PiecesGetCIDInfo(ctx context.Context, payloadCid ci
 
 func (c *StorageMinerStruct) SchedQueue(ctx context.Context) []sectorstorage.Task {
 	return c.Internal.SchedQueue(ctx)
+}
+
+func (c *StorageMinerStruct) ProvingTryRecover(ctx context.Context) error {
+	return c.Internal.ProvingTryRecover(ctx)
 }
 
 // WorkerStruct

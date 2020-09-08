@@ -104,6 +104,8 @@ type StorageMiner interface {
 	PiecesGetCIDInfo(ctx context.Context, payloadCid cid.Cid) (*piecestore.CIDInfo, error)
 
 	SchedQueue(ctx context.Context) []sectorstorage.Task
+
+	ProvingTryRecover(ctx context.Context) error
 }
 
 type SealRes struct {

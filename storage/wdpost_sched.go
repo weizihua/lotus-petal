@@ -181,11 +181,16 @@ func (s *WindowPoStScheduler) update(ctx context.Context, new *types.TipSet) err
 		return err
 	}
 
+	log.Infof("deadline: %+v", di)
+	log.Infof("activeDeadline: %+v", s.activeDeadline)
+
 	if deadlineEquals(s.activeDeadline, di) {
+		log.Warn("activeDeadline equals newDeadline")
 		return nil // already working on this deadline
 	}
 
 	if !di.PeriodStarted() {
+		log.Warn("verification period has not yet started")
 		return nil // not proving anything yet
 	}
 
@@ -225,4 +230,43 @@ func (s *WindowPoStScheduler) abortActivePoSt() {
 
 	s.activeDeadline = nil
 	s.abort = nil
+}
+
+func (s *WindowPoStScheduler) TryRecoverPoSt(ctx context.Context) error {
+	var hc = make([]*api.HeadChange, 0)
+
+	for {
+		notifys, err := s.api.ChainNotify(ctx)
+		if err != nil {
+			return err
+		}
+
+		hc = <-notifys
+		if len(hc) == 1 {
+			if hc[0] != nil {
+				break
+			}
+		}
+	}
+
+	di, err := s.api.StateMinerProvingDeadline(ctx, s.actor, hc[0].Val.Key())
+	if err != nil {
+		return err
+	}
+
+	for i := uint64(0); i < miner.WPoStPeriodDeadlines; i++ {
+		par, err := s.api.StateMinerPartitions(ctx, s.actor, i, hc[0].Val.Key())
+		if err != nil {
+			return err
+		}
+
+		if len(par) > 0 {
+			di.Index = i - 2
+
+			s.doPost(ctx, di, hc[0].Val)
+		}
+
+	}
+
+	return nil
 }

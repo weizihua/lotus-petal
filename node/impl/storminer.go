@@ -500,4 +500,8 @@ func (sm *StorageMinerAPI) SchedQueue(ctx context.Context) []sectorstorage.Task 
 	return sm.StorageMgr.SchedQueue()
 }
 
+func (sm *StorageMinerAPI) ProvingTryRecover(ctx context.Context) error {
+	return sm.Miner.ProvingTryRecover(ctx)
+}
+
 var _ api.StorageMiner = &StorageMinerAPI{}

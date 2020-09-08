@@ -45,6 +45,8 @@ type Miner struct {
 
 	getSealConfig dtypes.GetSealingConfigFunc
 	sealing       *sealing.Sealing
+
+	windowPoStScheduler WindowPoStScheduler
 }
 
 type storageMinerApi interface {
@@ -88,7 +90,7 @@ type storageMinerApi interface {
 	WalletHas(context.Context, address.Address) (bool, error)
 }
 
-func NewMiner(api storageMinerApi, maddr, worker address.Address, h host.Host, ds datastore.Batching, sealer sectorstorage.SectorManager, sc sealing.SectorIDCounter, verif ffiwrapper.Verifier, gsd dtypes.GetSealingConfigFunc, feeCfg config.MinerFeeConfig) (*Miner, error) {
+func NewMiner(api storageMinerApi, maddr, worker address.Address, h host.Host, ds datastore.Batching, sealer sectorstorage.SectorManager, sc sealing.SectorIDCounter, verif ffiwrapper.Verifier, gsd dtypes.GetSealingConfigFunc, feeCfg config.MinerFeeConfig, fps WindowPoStScheduler) (*Miner, error) {
 	m := &Miner{
 		api:    api,
 		feeCfg: feeCfg,
@@ -101,6 +103,8 @@ func NewMiner(api storageMinerApi, maddr, worker address.Address, h host.Host, d
 		maddr:         maddr,
 		worker:        worker,
 		getSealConfig: gsd,
+
+		windowPoStScheduler: fps,
 	}
 
 	return m, nil
@@ -147,6 +151,10 @@ func (m *Miner) runPreflightChecks(ctx context.Context) error {
 
 	log.Infof("starting up miner %s, worker addr %s", m.maddr, m.worker)
 	return nil
+}
+
+func (m *Miner) ProvingTryRecover(ctx context.Context) error {
+	return m.windowPoStScheduler.TryRecoverPoSt(ctx)
 }
 
 type StorageWpp struct {
