@@ -3,9 +3,9 @@ package sectorstorage
 import (
 	"time"
 
+	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/lotus/extern/sector-storage/sealtasks"
 	"github.com/filecoin-project/lotus/extern/sector-storage/storiface"
-	"github.com/filecoin-project/specs-actors/actors/abi"
 )
 
 type Task struct {
