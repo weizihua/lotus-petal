@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"github.com/filecoin-project/specs-actors/actors/util/adt"
 	"time"
 
 	"github.com/filecoin-project/go-state-types/dline"
@@ -392,6 +393,8 @@ type FullNode interface {
 
 	// StateCirculatingSupply returns the circulating supply of Filecoin at the given tipset
 	StateCirculatingSupply(context.Context, types.TipSetKey) (CirculatingSupply, error)
+	StateGetADTStore(ctx context.Context) adt.Store
+	StateGetMinerState(ctx context.Context, addr address.Address, ts *types.TipSet) (*miner.State, error)
 
 	// MethodGroup: Msig
 	// The Msig methods are used to interact with multisig wallets on the

@@ -3,6 +3,7 @@ package apistruct
 import (
 	"context"
 	sectorstorage "github.com/filecoin-project/lotus/extern/sector-storage"
+	"github.com/filecoin-project/specs-actors/actors/util/adt"
 	"io"
 	"time"
 
@@ -202,6 +203,8 @@ type FullNodeStruct struct {
 		StateVerifiedClientStatus          func(context.Context, address.Address, types.TipSetKey) (*verifreg.DataCap, error)                                  `perm:"read"`
 		StateDealProviderCollateralBounds  func(context.Context, abi.PaddedPieceSize, bool, types.TipSetKey) (api.DealCollateralBounds, error)                 `perm:"read"`
 		StateCirculatingSupply             func(context.Context, types.TipSetKey) (api.CirculatingSupply, error)                                               `perm:"read"`
+		StateGetADTStore				   func(ctx context.Context) adt.Store																				   `perm:"read"`
+		StateGetMinerState				   func(ctx context.Context, addr address.Address, ts *types.TipSet) (*miner.State, error)							   `perm:"read"`
 
 		MsigGetAvailableBalance func(context.Context, address.Address, types.TipSetKey) (types.BigInt, error)                                                                    `perm:"read"`
 		MsigGetVested           func(context.Context, address.Address, types.TipSetKey, types.TipSetKey) (types.BigInt, error)                                                   `perm:"read"`
@@ -887,6 +890,14 @@ func (c *FullNodeStruct) StateDealProviderCollateralBounds(ctx context.Context, 
 
 func (c *FullNodeStruct) StateCirculatingSupply(ctx context.Context, tsk types.TipSetKey) (api.CirculatingSupply, error) {
 	return c.Internal.StateCirculatingSupply(ctx, tsk)
+}
+
+func (c *FullNodeStruct) StateGetADTStore(ctx context.Context) adt.Store {
+	return c.Internal.StateGetADTStore(ctx)
+}
+
+func (c *FullNodeStruct) StateGetMinerState(ctx context.Context, addr address.Address, ts *types.TipSet) (*miner.State, error) {
+	return c.Internal.StateGetMinerState(ctx, addr, ts)
 }
 
 func (c *FullNodeStruct) MsigGetAvailableBalance(ctx context.Context, a address.Address, tsk types.TipSetKey) (types.BigInt, error) {

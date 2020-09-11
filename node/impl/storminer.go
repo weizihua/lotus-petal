@@ -499,7 +499,19 @@ func (sm *StorageMinerAPI) SchedQueue(ctx context.Context) []sectorstorage.Task 
 }
 
 func (sm *StorageMinerAPI) ProvingTryRecover(ctx context.Context) error {
-	return sm.Miner.ProvingTryRecover(ctx)
+	store := sm.Full.StateGetADTStore(ctx)
+
+	ts, err := sm.Full.ChainHead(ctx)
+	if err != nil {
+		return err
+	}
+
+	mas, err := sm.Full.StateGetMinerState(ctx, sm.Miner.Address(), ts)
+	if err != nil {
+		return err
+	}
+
+	return sm.Miner.ProvingTryRecover(ctx, store, mas)
 }
 
 var _ api.StorageMiner = &StorageMinerAPI{}

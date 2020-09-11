@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
+	"github.com/filecoin-project/specs-actors/actors/util/adt"
 	"time"
 
 	"github.com/filecoin-project/go-state-types/dline"
@@ -158,8 +159,8 @@ func (m *Miner) runPreflightChecks(ctx context.Context) error {
 	return nil
 }
 
-func (m *Miner) ProvingTryRecover(ctx context.Context) error {
-	return m.windowPoStScheduler.TryRecoverPoSt(ctx)
+func (m *Miner) ProvingTryRecover(ctx context.Context, store adt.Store, mas *miner.State) error {
+	return m.windowPoStScheduler.TryRecoverPoSt(ctx, store, mas)
 }
 
 type StorageWpp struct {

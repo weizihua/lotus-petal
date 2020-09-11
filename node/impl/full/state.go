@@ -1226,3 +1226,17 @@ func (a *StateAPI) StateCirculatingSupply(ctx context.Context, tsk types.TipSetK
 
 	return a.StateManager.GetCirculatingSupplyDetailed(ctx, ts.Height(), sTree)
 }
+
+func (a *StateAPI) StateGetADTStore(ctx context.Context) adt.Store {
+	return a.StateManager.ChainStore().Store(ctx)
+}
+
+func (a *StateAPI) StateGetMinerState(ctx context.Context, addr address.Address, ts *types.TipSet) (*miner.State, error) {
+	var mas miner.State
+	_, err := a.StateManager.LoadActorState(ctx, addr, &mas, ts)
+	if err != nil {
+		return nil, xerrors.Errorf("(get sset) failed to load miner actor state: %w", err)
+	}
+
+	return &mas, nil
+}

@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"github.com/filecoin-project/specs-actors/actors/builtin/miner"
+	"github.com/filecoin-project/specs-actors/actors/util/adt"
 	"time"
 
 	"github.com/filecoin-project/go-state-types/dline"
@@ -234,7 +235,7 @@ func (s *WindowPoStScheduler) abortActivePoSt() {
 	s.abort = nil
 }
 
-func (s *WindowPoStScheduler) TryRecoverPoSt(ctx context.Context) error {
+func (s *WindowPoStScheduler) TryRecoverPoSt(ctx context.Context, store adt.Store, mas *miner.State) error {
 	var hc = make([]*api.HeadChange, 0)
 
 	for {
@@ -255,6 +256,13 @@ func (s *WindowPoStScheduler) TryRecoverPoSt(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	//dls, err := mas.LoadDeadlines(store)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//dls.UpdateDeadline(store, 0, dls)
 
 	for i := uint64(0); i < miner.WPoStPeriodDeadlines; i++ {
 		par, err := s.api.StateMinerPartitions(ctx, s.actor, i, hc[0].Val.Key())
