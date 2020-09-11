@@ -189,6 +189,7 @@ func (m *Miner) mine(ctx context.Context) {
 			_, err = m.api.BeaconGetEntry(ctx, prebase.TipSet.Height()+prebase.NullRounds+1)
 			if err != nil {
 				log.Errorf("failed getting beacon entry: %s", err)
+				m.niceSleep(time.Second)
 				continue
 			}
 
@@ -361,7 +362,7 @@ func (m *Miner) mineOne(ctx context.Context, base *MiningBase) (*types.BlockMsg,
 		rbase = bvals[len(bvals)-1]
 	}
 
-	ticket, err := m.computeTicket(ctx, &rbase, base, len(bvals) > 0)
+	ticket, err := m.computeTicket(ctx, &rbase, base)
 	if err != nil {
 		return nil, xerrors.Errorf("scratching ticket failed: %w", err)
 	}
@@ -431,7 +432,7 @@ func (m *Miner) mineOne(ctx context.Context, base *MiningBase) (*types.BlockMsg,
 	return b, nil
 }
 
-func (m *Miner) computeTicket(ctx context.Context, brand *types.BeaconEntry, base *MiningBase, haveNewEntries bool) (*types.Ticket, error) {
+func (m *Miner) computeTicket(ctx context.Context, brand *types.BeaconEntry, base *MiningBase) (*types.Ticket, error) {
 	mi, err := m.api.StateMinerInfo(ctx, m.address, types.EmptyTSK)
 	if err != nil {
 		return nil, err
@@ -446,11 +447,12 @@ func (m *Miner) computeTicket(ctx context.Context, brand *types.BeaconEntry, bas
 		return nil, xerrors.Errorf("failed to marshal address to cbor: %w", err)
 	}
 
-	if !haveNewEntries {
+	round := base.TipSet.Height() + base.NullRounds + 1
+	if round > build.UpgradeSmokeHeight {
 		buf.Write(base.TipSet.MinTicket().VRFProof)
 	}
 
-	input, err := store.DrawRandomness(brand.Data, crypto.DomainSeparationTag_TicketProduction, base.TipSet.Height()+base.NullRounds+1-build.TicketRandomnessLookback, buf.Bytes())
+	input, err := store.DrawRandomness(brand.Data, crypto.DomainSeparationTag_TicketProduction, round-build.TicketRandomnessLookback, buf.Bytes())
 	if err != nil {
 		return nil, err
 	}
