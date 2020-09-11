@@ -261,7 +261,7 @@ func (s *WindowPoStScheduler) TryRecoverPoSt(ctx context.Context) error {
 		}
 
 		if len(par) > 0 {
-			di.Index = i - 2
+			di.Index = i
 
 			s.doPost(ctx, di, hc[0].Val)
 		}

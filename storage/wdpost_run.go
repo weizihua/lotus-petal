@@ -504,9 +504,15 @@ func (s *WindowPoStScheduler) submitPost(ctx context.Context, proof *miner.Submi
 		Method: builtin.MethodsMiner.SubmitWindowedPoSt,
 		Params: enc,
 		Value:  types.NewInt(1000), // currently hard-coded late fee in actor, returned if not late
+		//GasLimit: 10,
+		//GasFeeCap: abi.NewTokenAmount(10),
+		//GasPremium: abi.NewTokenAmount(10),
 	}
 	spec := &api.MessageSendSpec{MaxFee: abi.TokenAmount(s.feeCfg.MaxWindowPoStGasFee)}
 	s.setSender(ctx, msg, spec)
+
+	log.Infof("msg: %+v", msg)
+	log.Infof("spec: %+v", spec)
 
 	// TODO: consider maybe caring about the output
 	sm, err := s.api.MpoolPushMessage(ctx, msg, spec)
