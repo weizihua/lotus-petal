@@ -21,6 +21,7 @@ import (
 	lcli "github.com/filecoin-project/lotus/cli"
 	"github.com/modood/table"
 )
+
 type taskLoadTable struct {
 	AddPiece     uint64
 	PreCommit1   uint64
@@ -33,6 +34,16 @@ type taskLoadTable struct {
 	ReadUnsealed uint64
 }
 
+type workerTodosTable struct {
+	SectorID  uint64
+	TaskType  string
+	Priority  int
+	Start     time.Time
+	Index     int
+	IndexHeap int
+
+}
+
 var sealingCmd = &cli.Command{
 	Name:  "sealing",
 	Usage: "interact with sealing pipeline",
@@ -42,6 +53,7 @@ var sealingCmd = &cli.Command{
 		sealingSchedDiagCmd,
 		sealingWorkerLoad,
 		sealingQueueCmd,
+		sealingWorkerTodosCmd,
 	},
 }
 
@@ -307,6 +319,55 @@ var sealingQueueCmd = &cli.Command{
 				fmt.Printf("index heap:\t%d\n", t.IndexHeap)
 				fmt.Printf("start:\t%s\n", t.Start.String())
 			}
+		}
+
+		return nil
+	},
+}
+
+var sealingWorkerTodosCmd = &cli.Command{
+	Name: "worker-todos",
+	Usage: "Print worker todo tasks",
+	Action: func(cctx *cli.Context) error {
+		api, closer, err := lcli.GetStorageMinerAPI(cctx)
+		if err != nil {
+			return err
+		}
+		defer closer()
+
+		workersTodo := api.SchedWorkerTodos(lcli.ReqContext(cctx))
+		if len(workersTodo) == 0 {
+			fmt.Printf("Can't find any worker")
+			return nil
+		}
+
+		hostnames := map[uint64]string{}
+
+		wst, err := api.WorkerStats(lcli.ReqContext(cctx))
+		if err != nil {
+			return xerrors.Errorf("getting worker stats: %w", err)
+		}
+
+		for wid, st := range wst {
+			hostnames[wid] = st.Info.Hostname
+		}
+
+		for wid, todos := range workersTodo {
+			fmt.Printf("worker %d(%s):", wid, hostnames[uint64(wid)])
+
+			var todosTab = make([]workerTodosTable, len(todos))
+			for i, todo := range todos {
+				todosTab[i] = workerTodosTable{
+					SectorID:  uint64(todo.SectorID.Number),
+					TaskType:  todo.TaskType.Short(),
+					Priority:  todo.Priority,
+					Start:     todo.Start,
+					Index:     todo.Index,
+					IndexHeap: todo.IndexHeap,
+				}
+			}
+
+			table.Output(todosTab)
 		}
 
 		return nil

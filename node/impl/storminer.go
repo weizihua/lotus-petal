@@ -498,4 +498,8 @@ func (sm *StorageMinerAPI) SchedQueue(ctx context.Context) []sectorstorage.Task 
 	return sm.StorageMgr.SchedQueue()
 }
 
+func (sm *StorageMinerAPI) SchedWorkerTodos(ctx context.Context) map[sectorstorage.WorkerID][]sectorstorage.Todo {
+	return sm.StorageMgr.WorkerTodos()
+}
+
 var _ api.StorageMiner = &StorageMinerAPI{}

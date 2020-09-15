@@ -156,11 +156,6 @@ func (r *Remote) AcquireSector(ctx context.Context, s abi.SectorID, spt abi.Regi
 				}
 			}
 		case UP_ZT:
-			//if op == AcquireMove {
-			//	if err := r.removeFromCephFS(strings.TrimPrefix(url, ZTPrefix)); err != nil {
-			//		log.Warnf("deleting sector %v from %s (delete %s): %+v", s, storageID, url, err)
-			//	}
-			//}
 		}
 	}
 

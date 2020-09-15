@@ -317,6 +317,7 @@ type StorageMinerStruct struct {
 		PiecesGetCIDInfo   func(ctx context.Context, payloadCid cid.Cid) (*piecestore.CIDInfo, error) `perm:"read"`
 
 		SchedQueue func(ctx context.Context) []sectorstorage.Task `perm:"admin"`
+		SchedWorkerTodos func(ctx context.Context) map[sectorstorage.WorkerID][]sectorstorage.Todo `perm:"admin"`
 	}
 }
 
@@ -1245,6 +1246,10 @@ func (c *StorageMinerStruct) PiecesGetCIDInfo(ctx context.Context, payloadCid ci
 
 func (c *StorageMinerStruct) SchedQueue(ctx context.Context) []sectorstorage.Task {
 	return c.Internal.SchedQueue(ctx)
+}
+
+func (c *StorageMinerStruct) SchedWorkerTodos(ctx context.Context) map[sectorstorage.WorkerID][]sectorstorage.Todo {
+	return c.Internal.SchedWorkerTodos(ctx)
 }
 
 // WorkerStruct

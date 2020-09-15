@@ -17,6 +17,15 @@ type Task struct {
 	IndexHeap int
 }
 
+type Todo struct {
+	SectorID  abi.SectorID
+	TaskType  sealtasks.TaskType
+	Priority  int
+	Start     time.Time
+	Index     int
+	IndexHeap int
+}
+
 func (m *Manager) WorkerStats() map[uint64]storiface.WorkerStats {
 	m.sched.workersLk.RLock()
 	defer m.sched.workersLk.RUnlock()
@@ -83,4 +92,36 @@ func (m *Manager) SchedQueue() []Task {
 	}
 
 	return tasks
+}
+
+func (m *Manager) WorkerTodos() map[WorkerID][]Todo {
+	var workersTodo = make(map[WorkerID][]Todo, 0)
+	for wid, worker := range m.sched.workers {
+		if worker == nil {
+			log.Warnf("worker %d got nil", wid)
+			continue
+		}
+
+		var todos = make([]Todo, 0)
+		for _, wnd := range worker.activeWindows {
+			for _, todo := range wnd.todo {
+				if todo == nil {
+					continue
+				}
+
+				todos = append(todos, Todo{
+					SectorID:  todo.sector,
+					TaskType:  todo.taskType,
+					Priority:  todo.priority,
+					Start:     todo.start,
+					Index:     todo.index,
+					IndexHeap: todo.indexHeap,
+				})
+			}
+		}
+
+		workersTodo[wid] = todos
+	}
+
+	return workersTodo
 }
