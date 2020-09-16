@@ -348,6 +348,9 @@ type WorkerStruct struct {
 
 		Fetch func(context.Context, abi.SectorID, stores.SectorFileType, stores.PathType, stores.AcquireMode) error `perm:"admin"`
 
+		CanHandleMoreTask        func(ctx context.Context, running uint64) bool `perm:"admin"`
+		MaxParallelSealingSector func(ctx context.Context) uint64               `perm:"admin"`
+
 		Closing func(context.Context) (<-chan struct{}, error) `perm:"admin"`
 	}
 }
@@ -1325,6 +1328,14 @@ func (w *WorkerStruct) ReadPiece(ctx context.Context, writer io.Writer, id abi.S
 
 func (w *WorkerStruct) Fetch(ctx context.Context, id abi.SectorID, fileType stores.SectorFileType, ptype stores.PathType, am stores.AcquireMode) error {
 	return w.Internal.Fetch(ctx, id, fileType, ptype, am)
+}
+
+func (w *WorkerStruct) CanHandleMoreTask(ctx context.Context, running uint64) bool {
+	return w.Internal.CanHandleMoreTask(ctx, running)
+}
+
+func (w *WorkerStruct) MaxParallelSealingSector(ctx context.Context) uint64 {
+	return w.Internal.MaxParallelSealingSector(ctx)
 }
 
 func (w *WorkerStruct) Closing(ctx context.Context) (<-chan struct{}, error) {
