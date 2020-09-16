@@ -434,6 +434,11 @@ func (sh *scheduler) trySched() {
 				continue
 			}
 
+			if !sh.workers[wid].w.CanHandleMoreTask(context.Background(), uint64(len(sh.workers[wid].wt.running))) {
+				log.Warnf("worker %d can't handle more task", wid)
+				continue
+			}
+
 			log.Debugf("SCHED ASSIGNED sqi:%d sector %d task %s to window %d", sqi, task.sector.Number, task.taskType, wnd)
 
 			windows[wnd].allocated.add(wr, needRes)

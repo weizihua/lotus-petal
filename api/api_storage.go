@@ -105,6 +105,7 @@ type StorageMiner interface {
 
 	SchedQueue(ctx context.Context) []sectorstorage.Task
 	SchedWorkerTodos(ctx context.Context) map[sectorstorage.WorkerID][]sectorstorage.Todo
+	SchedWorkerLoad(ctx context.Context) map[sectorstorage.WorkerID]sectorstorage.LoadInfo
 }
 
 type SealRes struct {

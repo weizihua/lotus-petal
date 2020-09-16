@@ -57,9 +57,9 @@ var runCmd = &cli.Command{
 			Value: false,
 		},
 		&cli.StringFlag{
-			Name: "sectors-storage",
+			Name: "storage-path",
 			Usage: "sectors storage path",
-			EnvVars: []string{"SECTORS_STORAGE_PATH"},
+			EnvVars: []string{"LOTUS_SECTOR_STORAGE_PATH"},
 		},
 	},
 	Action: func(cctx *cli.Context) error {

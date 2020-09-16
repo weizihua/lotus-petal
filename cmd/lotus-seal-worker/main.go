@@ -165,9 +165,14 @@ var runCmd = &cli.Command{
 			Value: false,
 		},
 		&cli.StringFlag{
-			Name: "sectors-storage",
+			Name: "storage-path",
 			Usage: "sectors storage path",
-			EnvVars: []string{"SECTORS_STORAGE_PATH"},
+			EnvVars: []string{"LOTUS_SECTOR_STORAGE_PATH"},
+		},
+		&cli.Uint64Flag{
+			Name: "max-parallel-sealing-sector",
+			Usage: "maximum number of parallel sealing sectors",
+			Value: 5,
 		},
 	},
 	Before: func(cctx *cli.Context) error {
@@ -413,7 +418,7 @@ var runCmd = &cli.Command{
 			LocalWorker: sectorstorage.NewLocalWorker(sectorstorage.WorkerConfig{
 				SealProof: spt,
 				TaskTypes: taskTypes,
-			}, remote, localStore, nodeApi),
+			}, remote, localStore, nodeApi, cctx.Uint64("max-parallel-sealing-sector")),
 			localStore: localStore,
 			ls:         lr,
 		}
@@ -540,8 +545,9 @@ func watchMinerConn(ctx context.Context, cctx *cli.Context, nodeApi api.StorageM
 			fmt.Sprintf("--commit2=%t", cctx.Bool("commit2")),
 			fmt.Sprintf("--parallel-fetch-limit=%d", cctx.Int("parallel-fetch-limit")),
 			fmt.Sprintf("--timeout=%s", cctx.String("timeout")),
-			fmt.Sprintf("--sectors-storage=%s", cctx.String("sectors-storage")),
+			fmt.Sprintf("--storage-path=%s", cctx.String("storage-path")),
 			fmt.Sprintf("--zt=%t", cctx.Bool("zt")),
+			fmt.Sprintf("--max-parallel-sealing-sector", cctx.Uint64("max-parallel-sealing-sector")),
 		}, os.Environ()); err != nil {
 			fmt.Println(err)
 		}

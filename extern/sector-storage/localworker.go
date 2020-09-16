@@ -34,10 +34,11 @@ type LocalWorker struct {
 	localStore *stores.Local
 	sindex     stores.SectorIndex
 
-	acceptTasks map[sealtasks.TaskType]struct{}
+	acceptTasks              map[sealtasks.TaskType]struct{}
+	maxParallelSealingSector uint64
 }
 
-func NewLocalWorker(wcfg WorkerConfig, store stores.Store, local *stores.Local, sindex stores.SectorIndex) *LocalWorker {
+func NewLocalWorker(wcfg WorkerConfig, store stores.Store, local *stores.Local, sindex stores.SectorIndex, mps uint64) *LocalWorker {
 	acceptTasks := map[sealtasks.TaskType]struct{}{}
 	for _, taskType := range wcfg.TaskTypes {
 		acceptTasks[taskType] = struct{}{}
@@ -51,7 +52,8 @@ func NewLocalWorker(wcfg WorkerConfig, store stores.Store, local *stores.Local, 
 		localStore: local,
 		sindex:     sindex,
 
-		acceptTasks: acceptTasks,
+		acceptTasks:              acceptTasks,
+		maxParallelSealingSector: mps,
 	}
 }
 
@@ -301,5 +303,22 @@ func (l *LocalWorker) Closing(ctx context.Context) (<-chan struct{}, error) {
 func (l *LocalWorker) Close() error {
 	return nil
 }
+
+func (l *LocalWorker) CanHandleMoreTask(ctx context.Context, running uint64) bool {
+	if l.maxParallelSealingSector == 0 {
+		return true
+	}
+
+	if running < l.maxParallelSealingSector {
+		return true
+	}
+
+	return false
+}
+
+func (l *LocalWorker) MaxParallelSealingSector(ctx context.Context) uint64 {
+	return l.maxParallelSealingSector
+}
+
 
 var _ Worker = &LocalWorker{}

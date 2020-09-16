@@ -106,6 +106,15 @@ func (s *schedTestWorker) Paths(ctx context.Context) ([]stores.StoragePath, erro
 	return s.paths, nil
 }
 
+func (s *schedTestWorker) CanHandleMoreTask(ctx context.Context, running uint64) bool {
+	return true
+}
+
+func (s *schedTestWorker) MaxParallelSealingSector(ctx context.Context) uint64 {
+	return 0
+}
+
+
 var decentWorkerResources = storiface.WorkerResources{
 	MemPhysical: 128 << 30,
 	MemSwap:     200 << 30,

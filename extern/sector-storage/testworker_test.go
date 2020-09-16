@@ -97,6 +97,14 @@ func (t *testWorker) TaskTypes(ctx context.Context) (map[sealtasks.TaskType]stru
 	return t.acceptTasks, nil
 }
 
+func (t *testWorker) CanHandleMoreTask(ctx context.Context, running uint64) bool {
+	return true
+}
+
+func (t *testWorker) MaxParallelSealingSector(ctx context.Context) uint64 {
+	return 0
+}
+
 func (t *testWorker) Paths(ctx context.Context) ([]stores.StoragePath, error) {
 	return t.lstor.Local(ctx)
 }

@@ -502,4 +502,8 @@ func (sm *StorageMinerAPI) SchedWorkerTodos(ctx context.Context) map[sectorstora
 	return sm.StorageMgr.WorkerTodos()
 }
 
+func (sm *StorageMinerAPI) SchedWorkerLoad(ctx context.Context) map[sectorstorage.WorkerID]sectorstorage.LoadInfo {
+	return sm.StorageMgr.WorkerLoad()
+}
+
 var _ api.StorageMiner = &StorageMinerAPI{}

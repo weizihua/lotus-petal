@@ -1,6 +1,7 @@
 package sectorstorage
 
 import (
+	"context"
 	"time"
 
 	"github.com/filecoin-project/go-state-types/abi"
@@ -24,6 +25,11 @@ type Todo struct {
 	Start     time.Time
 	Index     int
 	IndexHeap int
+}
+
+type LoadInfo struct {
+	MaxLoad  uint64
+	CurrLoad uint64
 }
 
 func (m *Manager) WorkerStats() map[uint64]storiface.WorkerStats {
@@ -124,4 +130,19 @@ func (m *Manager) WorkerTodos() map[WorkerID][]Todo {
 	}
 
 	return workersTodo
+}
+
+func (m *Manager) WorkerLoad() map[WorkerID]LoadInfo {
+	var out = make(map[WorkerID]LoadInfo)
+	for wid, whandle := range m.sched.workers {
+		max := whandle.w.MaxParallelSealingSector(context.Background())
+		curr := uint64(len(whandle.wt.Running()))
+
+		out[wid] = LoadInfo{
+			MaxLoad:  max,
+			CurrLoad: curr,
+		}
+	}
+
+	return out
 }

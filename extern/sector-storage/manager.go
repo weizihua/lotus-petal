@@ -38,6 +38,8 @@ type Worker interface {
 	ReadPiece(context.Context, io.Writer, abi.SectorID, storiface.UnpaddedByteIndex, abi.UnpaddedPieceSize) (bool, error)
 
 	TaskTypes(context.Context) (map[sealtasks.TaskType]struct{}, error)
+	CanHandleMoreTask(ctx context.Context, running uint64) bool
+	MaxParallelSealingSector(ctx context.Context) uint64
 
 	// Returns paths accessible to the worker
 	Paths(context.Context) ([]stores.StoragePath, error)
@@ -140,7 +142,7 @@ func New(ctx context.Context, ls stores.LocalStorage, si stores.SectorIndex, cfg
 	err = m.AddWorker(ctx, NewLocalWorker(WorkerConfig{
 		SealProof: cfg.SealProofType,
 		TaskTypes: localTasks,
-	}, stor, lstor, si))
+	}, stor, lstor, si, 0))
 	if err != nil {
 		return nil, xerrors.Errorf("adding local worker: %w", err)
 	}

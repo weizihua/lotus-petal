@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	sectorstorage "github.com/filecoin-project/lotus/extern/sector-storage"
 	"os"
 	"sort"
 	"strings"
@@ -268,14 +269,24 @@ var sealingWorkerLoad = &cli.Command{
 			hostnames[wid] = st.Info.Hostname
 		}
 
-		for w, wj := range jobs {
+		var keys []uint64
+		for k := range jobs {
+			keys = append(keys, k)
+		}
+		sort.Slice(keys, func(i, j int) bool {
+			return keys[i] < keys[j]
+		})
+
+		wload := nodeApi.SchedWorkerLoad(lcli.ReqContext(cctx))
+
+		for _, i := range keys {
 			loads := map[sealtasks.TaskType]uint64{}
 
-			for _, j := range wj {
+			for _, j := range jobs[i] {
 				loads[j.Task] += 1
 			}
 
-			fmt.Printf("worker %s(%d):\n", hostnames[w], w)
+			fmt.Printf("worker(%d) %s(%d/%d):\n", i, hostnames[i], wload[sectorstorage.WorkerID(i)].CurrLoad, wload[sectorstorage.WorkerID(i)].MaxLoad)
 			loadsTab := []taskLoadTable{
 				{
 					func() uint64 {if load,ok := loads[sealtasks.TTAddPiece];ok{return load}else{return 0}}(),
@@ -310,14 +321,17 @@ var sealingQueueCmd = &cli.Command{
 		if len(queue) == 0 {
 			fmt.Println("Task queue is empty")
 		} else  {
+			tw := tabwriter.NewWriter(os.Stdout, 2, 4, 2, ' ', 0)
+			_, _ = fmt.Fprintf(tw, "No.\tSector\tTaskType\tPriority\tIndex\tIndexHeap\tStart\n")
 			for i, t := range queue {
-				fmt.Printf("========== %d ==========\n", i)
-				fmt.Printf("sector:\t%d\n", uint64(t.SectorID.Number))
-				fmt.Printf("task type:\t%s\n", string(t.TaskType))
-				fmt.Printf("priority:\t%d\n", t.Priority)
-				fmt.Printf("index:\t%d\n", t.Index)
-				fmt.Printf("index heap:\t%d\n", t.IndexHeap)
-				fmt.Printf("start:\t%s\n", t.Start.String())
+				_, _ = fmt.Fprintf(tw, "%d\t%d\t%s\t%d\t%d\t%d\t%s\n",
+					i,
+					t.SectorID,
+					string(t.TaskType),
+					t.Priority,
+					t.Index,
+					t.IndexHeap,
+					t.Start.String())
 			}
 		}
 
@@ -353,6 +367,10 @@ var sealingWorkerTodosCmd = &cli.Command{
 		}
 
 		for wid, todos := range workersTodo {
+			if len(todos) == 0 {
+				continue
+			}
+
 			fmt.Printf("worker %d(%s):", wid, hostnames[uint64(wid)])
 
 			var todosTab = make([]workerTodosTable, len(todos))
