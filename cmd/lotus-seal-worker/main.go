@@ -85,9 +85,9 @@ func main() {
 				Value: false,
 			},
 			&cli.StringFlag{
-				Name: "sectors-storage",
+				Name: "storage-path",
 				Usage: "sectors storage path",
-				EnvVars: []string{"SECTORS_STORAGE_PATH"},
+				EnvVars: []string{"LOTUS_SECTOR_STORAGE_PATH"},
 			},
 		},
 
@@ -286,7 +286,7 @@ var runCmd = &cli.Command{
 			return err
 		}
 
-		sto := cctx.String("sectors-storage")
+		sto := cctx.String("storage-path")
 
 		if cctx.Bool("zt") {
 			if err := os.Setenv("USE_ZERO_TRANSMISSION", "1"); err != nil {

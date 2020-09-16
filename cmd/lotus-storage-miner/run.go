@@ -119,12 +119,12 @@ var runCmd = &cli.Command{
 				return err
 			}
 
-			if mount, exist := os.LookupEnv("CEPHFS_MOUNT_POINT"); exist && len(cctx.String("sectors-storage")) != 0 {
+			if mount, exist := os.LookupEnv("CEPHFS_MOUNT_POINT"); exist && len(cctx.String("storage-path")) != 0 {
 				if !strings.Contains(minerRepoPath, mount) {
 					return xerrors.Errorf("miner repo is not in cephfs, can't use zero transport")
 				}
 
-				if err := os.Setenv("STORAGE_ROOT_PATH", strings.TrimPrefix(cctx.String("sectors-storage"), mount)); err != nil {
+				if err := os.Setenv("STORAGE_ROOT_PATH", strings.TrimPrefix(cctx.String("storage-path"), mount)); err != nil {
 					return err
 				}
 			} else {

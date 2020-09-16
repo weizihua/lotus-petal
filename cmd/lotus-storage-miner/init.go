@@ -235,7 +235,7 @@ var initCmd = &cli.Command{
 					return xerrors.Errorf("persisting storage metadata (%s): %w", filepath.Join(lr.Path(), "sectorstore.json"), err)
 				}
 
-				sto := cctx.String("sectors-storage")
+				sto := cctx.String("storage-path")
 				if len(sto) == 0 {
 					localPaths = append(localPaths, stores.LocalPath{
 						Path: lr.Path(),
