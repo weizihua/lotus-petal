@@ -423,6 +423,7 @@ func (sh *scheduler) trySched() {
 		needRes := ResourceTable[task.taskType][sh.spt]
 
 		selectedWindow := -1
+		var workerMaxParallel uint64 = 0
 		for _, wnd := range acceptableWindows[task.indexHeap] {
 			wid := sh.openWindows[wnd].worker
 			wr := sh.workers[wid].info.Resources
@@ -439,9 +440,12 @@ func (sh *scheduler) trySched() {
 				continue
 			}
 
-			if uint64(len(windows[wnd].todo)) == sh.workers[wid].w.MaxParallelSealingSector(context.Background()) {
-				log.Warnf("worker %d can't handle more task, curr todo: %d", wid, len(windows[wnd].todo))
-				continue
+			workerMaxParallel = sh.workers[wid].w.MaxParallelSealingSector(context.Background()) - uint64(len(sh.workers[wid].wt.running))
+			if workerMaxParallel != 0 {
+				if uint64(len(windows[wnd].todo)) == workerMaxParallel {
+					log.Warnf("worker %d can't handle more task, curr todo: %d", wid, len(windows[wnd].todo))
+					continue
+				}
 			}
 
 			log.Debugf("SCHED ASSIGNED sqi:%d sector %d task %s to window %d", sqi, task.sector.Number, task.taskType, wnd)
@@ -461,11 +465,17 @@ func (sh *scheduler) trySched() {
 			continue
 		}
 
-		windows[selectedWindow].todo = append(windows[selectedWindow].todo, task)
+		if uint64(len(windows[selectedWindow].todo)) < workerMaxParallel {
+			windows[selectedWindow].todo = append(windows[selectedWindow].todo, task)
 
-		sh.schedQueue.Remove(sqi)
-		sqi--
-		scheduled++
+			sh.schedQueue.Remove(sqi)
+			sqi--
+			scheduled++
+
+			continue
+		}
+
+		log.Warnf("can't assign more task, curr todos: %d", len(windows[selectedWindow].todo))
 	}
 
 	// Step 3
