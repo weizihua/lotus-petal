@@ -439,6 +439,11 @@ func (sh *scheduler) trySched() {
 				continue
 			}
 
+			if uint64(len(windows[wnd].todo)) == sh.workers[wid].w.MaxParallelSealingSector(context.Background()) {
+				log.Warnf("worker %d can't handle more task, curr todo: %d", wid, len(windows[wnd].todo))
+				continue
+			}
+
 			log.Debugf("SCHED ASSIGNED sqi:%d sector %d task %s to window %d", sqi, task.sector.Number, task.taskType, wnd)
 
 			windows[wnd].allocated.add(wr, needRes)
