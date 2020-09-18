@@ -333,6 +333,8 @@ var sealingQueueCmd = &cli.Command{
 					t.IndexHeap,
 					t.Start.String())
 			}
+
+			return tw.Flush()
 		}
 
 		return nil

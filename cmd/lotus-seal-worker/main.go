@@ -547,7 +547,7 @@ func watchMinerConn(ctx context.Context, cctx *cli.Context, nodeApi api.StorageM
 			fmt.Sprintf("--timeout=%s", cctx.String("timeout")),
 			fmt.Sprintf("--storage-path=%s", cctx.String("storage-path")),
 			fmt.Sprintf("--zt=%t", cctx.Bool("zt")),
-			fmt.Sprintf("--max-parallel-sealing-sector", cctx.Uint64("max-parallel-sealing-sector")),
+			fmt.Sprintf("--max-parallel-sealing-sector=%d", cctx.Uint64("max-parallel-sealing-sector")),
 		}, os.Environ()); err != nil {
 			fmt.Println(err)
 		}
