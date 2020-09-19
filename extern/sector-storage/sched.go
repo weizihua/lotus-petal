@@ -306,6 +306,9 @@ func (sh *scheduler) tryNewSched() {
 		return
 	}
 
+	sh.workersLk.RLock()
+	defer sh.workersLk.RUnlock()
+
 	var workers = make(map[WorkerID]*schedWindowRequest)
 
 	for i, window := range sh.openWindows {
@@ -370,6 +373,8 @@ func (sh *scheduler) tryNewSched() {
 
 		window.done <- &schedWindow
 	}
+
+	sh.openWindows = newOpenWindows
 }
 
 func (sh *scheduler) tryOfficialSched() {
