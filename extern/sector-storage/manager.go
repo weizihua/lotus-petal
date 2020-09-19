@@ -142,7 +142,7 @@ func New(ctx context.Context, ls stores.LocalStorage, si stores.SectorIndex, cfg
 	err = m.AddWorker(ctx, NewLocalWorker(WorkerConfig{
 		SealProof: cfg.SealProofType,
 		TaskTypes: localTasks,
-	}, stor, lstor, si, 0))
+	}, stor, lstor, si, 9999))
 	if err != nil {
 		return nil, xerrors.Errorf("adding local worker: %w", err)
 	}

@@ -24,7 +24,7 @@ var SelectorTimeout = 5 * time.Second
 var InitWait = 3 * time.Second
 
 var (
-	SchedWindows = 2
+	SchedWindows = 1
 )
 
 func getPriority(ctx context.Context) int {
@@ -275,7 +275,7 @@ func (sh *scheduler) runSched() {
 				}
 			}
 
-			sh.trySched()
+			sh.tryNewSched()
 		}
 
 	}
@@ -301,7 +301,78 @@ func (sh *scheduler) diag() SchedDiagInfo {
 	return out
 }
 
-func (sh *scheduler) trySched() {
+func (sh *scheduler) tryNewSched() {
+	if sh.schedQueue.Len() == 0 || len(sh.openWindows) == 0 {
+		return
+	}
+
+	var workers = make(map[WorkerID]*schedWindowRequest)
+
+	for i, window := range sh.openWindows {
+		if window == nil {
+			log.Warnf("openWindows[%d] is nil point", i)
+			continue
+		}
+
+		whandle, exist := sh.workers[window.worker]
+		if !exist {
+			log.Warnf("worker %d does not in worker map", window.worker)
+			continue
+		}
+
+		if !whandle.w.CanHandleMoreTask(context.Background(), uint64(len(whandle.wt.Running()))) {
+			log.Warnf("worker %d can't handle more task", window.worker)
+			continue
+		}
+
+		workers[window.worker] = window
+	}
+
+	if len(workers) == 0 {
+		return
+	}
+
+	newOpenWindows := make([]*schedWindowRequest, 0)
+	for wid, window := range workers {
+		schedWindow := schedWindow{}
+		running := len(sh.workers[wid].wt.Running())
+		maxParallelSectors := sh.workers[wid].w.MaxParallelSealingSector(context.Background())
+
+		for i := 0; i < sh.schedQueue.Len(); i++ {
+			task := (*sh.schedQueue)[i]
+			needRes := ResourceTable[task.taskType][sh.spt]
+
+			ok ,err := task.sel.Ok(context.Background(), task.taskType, sh.spt, sh.workers[wid])
+			if err != nil {
+				log.Warnf("sel.Ok: %s", err)
+				continue
+			}
+			if !ok {
+				continue
+			}
+
+			if !schedWindow.allocated.canHandleRequest(needRes, wid, "schedAcceptable", sh.workers[wid].info.Resources) {
+				continue
+			}
+
+			if uint64(len(schedWindow.todo) + running + 1) <= maxParallelSectors {
+				schedWindow.todo = append(schedWindow.todo, task)
+			}
+
+			schedWindow.allocated.add(sh.workers[wid].info.Resources, needRes)
+			sh.schedQueue.Remove(i)
+		}
+
+		if len(schedWindow.todo) == 0 {
+			newOpenWindows = append(newOpenWindows, window)
+			continue
+		}
+
+		window.done <- &schedWindow
+	}
+}
+
+func (sh *scheduler) tryOfficialSched() {
 	/*
 		This assigns tasks to workers based on:
 		- Task priority (achieved by handling sh.schedQueue in order, since it's already sorted by priority)
