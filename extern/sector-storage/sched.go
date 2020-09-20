@@ -341,7 +341,6 @@ func (sh *scheduler) tryNewSched() {
 		running := len(sh.workers[wid].wt.Running())
 		maxParallelSectors := sh.workers[wid].w.MaxParallelSealingSector(context.Background())
 
-		var assignedTask = make([]int, 0)
 		for i := 0; i < sh.schedQueue.Len(); i++ {
 			task := (*sh.schedQueue)[i]
 			needRes := ResourceTable[task.taskType][sh.spt]
@@ -363,17 +362,15 @@ func (sh *scheduler) tryNewSched() {
 				if uint64(len(schedWindow.todo) + running + 1) <= maxParallelSectors {
 					schedWindow.todo = append(schedWindow.todo, task)
 					schedWindow.allocated.add(sh.workers[wid].info.Resources, needRes)
-					assignedTask = append(assignedTask, i)
+					sh.schedQueue.Remove(i)
+					i--
 				}
 			} else {
 				schedWindow.todo = append(schedWindow.todo, task)
 				schedWindow.allocated.add(sh.workers[wid].info.Resources, needRes)
-				assignedTask = append(assignedTask, i)
+				sh.schedQueue.Remove(i)
+				i--
 			}
-		}
-
-		for _, i := range assignedTask {
-			sh.schedQueue.Remove(i)
 		}
 
 		if len(schedWindow.todo) == 0 {
