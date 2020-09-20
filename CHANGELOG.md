@@ -240,7 +240,7 @@ This patch release includes some bugfixes and enhancements to the sector lifecyc
 ## Changes
 
 - Rebuild unsealed infos on miner restart (https://github.com/filecoin-project/lotus/pull/3401)
-- CLI to attach storage paths to workers (https://github.com/filecoin-project/lotus/pull/3405)
+- CLI to attach storage paths to schedWorkers (https://github.com/filecoin-project/lotus/pull/3405)
 - Do not select negative performing message chains for inclusion (https://github.com/filecoin-project/lotus/pull/3392)
 - Remove a redundant error-check (https://github.com/filecoin-project/lotus/pull/3421)
 - Correctly move unsealed sectors in `FinalizeSectors` (https://github.com/filecoin-project/lotus/pull/3424)

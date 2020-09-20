@@ -14,7 +14,7 @@ tmux send-keys "watch -n1 './lotus-miner info'" C-m
 tmux split-window -v
 
 tmux select-pane -t 1
-tmux send-keys "watch -n1 './lotus-miner workers list'" C-m
+tmux send-keys "watch -n1 './lotus-miner schedWorkers list'" C-m
 
 tmux select-pane -t 2
 tmux send-keys "watch -n1 './lotus-miner storage list'" C-m

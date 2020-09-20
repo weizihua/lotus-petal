@@ -50,12 +50,12 @@ Once this is set, run:
 lotus-worker run
 ```
 
-If you are running multiple workers on the same host, you will need to specify the `--listen` flag and ensure each worker is on a different port.
+If you are running multiple schedWorkers on the same host, you will need to specify the `--listen` flag and ensure each worker is on a different port.
 
-To check that the **Lotus Worker** is connected to your **Lotus Miner**, run `lotus-miner sealing workers` and check that the remote worker count has increased.
+To check that the **Lotus Worker** is connected to your **Lotus Miner**, run `lotus-miner sealing schedWorkers` and check that the remote worker count has increased.
 
 ```sh
-why@computer ~/lotus> lotus-miner sealing workers
+why@computer ~/lotus> lotus-miner sealing schedWorkers
 Worker 0, host computer
         CPU:  [                                                                ] 0 core(s) in use
         RAM:  [||||||||||||||||||                                              ] 28% 18.1 GiB/62.7 GiB

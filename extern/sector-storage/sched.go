@@ -309,7 +309,7 @@ func (sh *scheduler) tryNewSched() {
 	sh.workersLk.RLock()
 	defer sh.workersLk.RUnlock()
 
-	var workers = make(map[WorkerID]*schedWindowRequest)
+	var schedWorkers = make(map[WorkerID]*schedWindowRequest)
 
 	for i, window := range sh.openWindows {
 		if window == nil {
@@ -328,15 +328,15 @@ func (sh *scheduler) tryNewSched() {
 			continue
 		}
 
-		workers[window.worker] = window
+		schedWorkers[window.worker] = window
 	}
 
-	if len(workers) == 0 {
+	if len(schedWorkers) == 0 {
 		return
 	}
 
 	newOpenWindows := make([]*schedWindowRequest, 0)
-	for wid, window := range workers {
+	for wid, window := range schedWorkers {
 		schedWindow := schedWindow{}
 		running := len(sh.workers[wid].wt.Running())
 		maxParallelSectors := sh.workers[wid].w.MaxParallelSealingSector(context.Background())
@@ -358,12 +358,13 @@ func (sh *scheduler) tryNewSched() {
 				continue
 			}
 
-			if uint64(len(schedWindow.todo) + running + 1) <= maxParallelSectors {
-				schedWindow.todo = append(schedWindow.todo, task)
+			if maxParallelSectors != 0 {
+				if uint64(len(schedWindow.todo) + running + 1) <= maxParallelSectors {
+					schedWindow.todo = append(schedWindow.todo, task)
+					schedWindow.allocated.add(sh.workers[wid].info.Resources, needRes)
+					sh.schedQueue.Remove(i)
+				}
 			}
-
-			schedWindow.allocated.add(sh.workers[wid].info.Resources, needRes)
-			sh.schedQueue.Remove(i)
 		}
 
 		if len(schedWindow.todo) == 0 {
