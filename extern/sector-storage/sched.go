@@ -337,15 +337,18 @@ func (sh *scheduler) tryNewSched() {
 
 	newOpenWindows := make([]*schedWindowRequest, 0)
 	for wid, window := range schedWorkers {
-		schedWindow := schedWindow{}
-		running := len(sh.workers[wid].wt.Running())
+		schedWindow := schedWindow{
+			allocated: activeResources{},
+			todo:      make([]*workerRequest, 0),
+		}
 		maxParallelSectors := sh.workers[wid].w.MaxParallelSealingSector(context.Background())
 
 		for i := 0; i < sh.schedQueue.Len(); i++ {
+			running := len(sh.workers[wid].wt.Running())
 			task := (*sh.schedQueue)[i]
 			needRes := ResourceTable[task.taskType][sh.spt]
 
-			ok ,err := task.sel.Ok(context.Background(), task.taskType, sh.spt, sh.workers[wid])
+			ok, err := task.sel.Ok(context.Background(), task.taskType, sh.spt, sh.workers[wid])
 			if err != nil {
 				log.Warnf("sel.Ok: %s", err)
 				continue
@@ -363,10 +366,10 @@ func (sh *scheduler) tryNewSched() {
 				for _, window := range sh.workers[wid].activeWindows {
 					curActive += len(window.todo)
 				}
-				log.Debugw("worker %d", "curActive", curActive, "curRunning", running,
+				log.Debugw(fmt.Sprintf("worker %d", wid), "curActive", curActive, "curRunning", running,
 					"curWindowTodo", len(schedWindow.todo))
 
-				if uint64(len(schedWindow.todo) + running + 1) <= maxParallelSectors {
+				if uint64(len(schedWindow.todo)+running+1) <= maxParallelSectors {
 					schedWindow.todo = append(schedWindow.todo, task)
 					schedWindow.allocated.add(sh.workers[wid].info.Resources, needRes)
 					sh.schedQueue.Remove(i)
@@ -385,6 +388,7 @@ func (sh *scheduler) tryNewSched() {
 			continue
 		}
 
+		log.Infof("assign %d jobs to worker %d", len(schedWindow.todo), wid)
 		window.done <- &schedWindow
 	}
 
