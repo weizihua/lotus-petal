@@ -359,6 +359,13 @@ func (sh *scheduler) tryNewSched() {
 			}
 
 			if maxParallelSectors != 0 {
+				curActive := 0
+				for _, window := range sh.workers[wid].activeWindows {
+					curActive += len(window.todo)
+				}
+				log.Debugw("worker %d", "curActive", curActive, "curRunning", running,
+					"curWindowTodo", len(schedWindow.todo))
+
 				if uint64(len(schedWindow.todo) + running + 1) <= maxParallelSectors {
 					schedWindow.todo = append(schedWindow.todo, task)
 					schedWindow.allocated.add(sh.workers[wid].info.Resources, needRes)
