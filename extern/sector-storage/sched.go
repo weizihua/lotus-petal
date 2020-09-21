@@ -374,6 +374,8 @@ func (sh *scheduler) tryNewSched() {
 					schedWindow.allocated.add(sh.workers[wid].info.Resources, needRes)
 					sh.schedQueue.Remove(i)
 					i--
+				} else {
+					break
 				}
 			} else {
 				schedWindow.todo = append(schedWindow.todo, task)
