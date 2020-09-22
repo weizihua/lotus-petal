@@ -335,7 +335,7 @@ func (sh *scheduler) tryNewSched() {
 		return
 	}
 
-	newOpenWindows := make([]*schedWindowRequest, 0)
+	//newOpenWindows := make([]*schedWindowRequest, 0)
 	for wid, window := range schedWorkers {
 		schedWindow := schedWindow{}
 		maxParallelSectors := sh.workers[wid].w.MaxParallelSealingSector(context.Background())
@@ -387,16 +387,16 @@ func (sh *scheduler) tryNewSched() {
 			window.done <- &schedWindow
 		}
 
-		if maxParallelSectors != 0 {
-			if uint64(len(schedWindow.todo) + running) < maxParallelSectors {
-				newOpenWindows = append(newOpenWindows, window)
-			}
-		} else {
-			newOpenWindows = append(newOpenWindows, window)
-		}
+		//if maxParallelSectors != 0 {
+		//	if uint64(len(schedWindow.todo) + running) < maxParallelSectors {
+		//		newOpenWindows = append(newOpenWindows, window)
+		//	}
+		//} else {
+		//	newOpenWindows = append(newOpenWindows, window)
+		//}
 	}
 
-	sh.openWindows = newOpenWindows
+	//sh.openWindows = newOpenWindows
 }
 
 func (sh *scheduler) tryOfficialSched() {
@@ -649,23 +649,14 @@ func (sh *scheduler) runWorker(wid WorkerID) {
 			// TODO: close / return all queued tasks
 		}()
 
-		for {
-			// ask for more windows if we need them
-			for ; windowsRequested < SchedWindows; windowsRequested++ {
-				select {
-				case sh.windowRequests <- &schedWindowRequest{
-					worker: wid,
-					done:   scheduledWindows,
-				}:
-				case <-sh.closing:
-					return
-				case <-workerClosing:
-					return
-				case <-worker.closingMgr:
-					return
-				}
+		for ; windowsRequested < SchedWindows; windowsRequested++ {
+			sh.windowRequests <- &schedWindowRequest{
+				worker: wid,
+				done:   scheduledWindows,
 			}
+		}
 
+		for {
 			select {
 			case w := <-scheduledWindows:
 				worker.wndLk.Lock()
@@ -684,7 +675,7 @@ func (sh *scheduler) runWorker(wid WorkerID) {
 			sh.workersLk.RLock()
 			worker.wndLk.Lock()
 
-			windowsRequested -= sh.workerCompactWindows(worker, wid)
+			_ = sh.workerCompactWindows(worker, wid)
 
 		assignLoop:
 			// process windows in order
@@ -729,8 +720,8 @@ func (sh *scheduler) runWorker(wid WorkerID) {
 				worker.activeWindows[len(worker.activeWindows)-1] = nil
 				worker.activeWindows = worker.activeWindows[:len(worker.activeWindows)-1]
 
-				windowsRequested--
-				log.Debugf("worker %d windowsRequested: %d", wid, windowsRequested)
+				//windowsRequested--
+				//log.Debugf("worker %d windowsRequested: %d", wid, windowsRequested)
 			}
 
 			worker.wndLk.Unlock()
