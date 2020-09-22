@@ -387,7 +387,11 @@ func (sh *scheduler) tryNewSched() {
 			window.done <- &schedWindow
 		}
 
-		if uint64(len(schedWindow.todo) + running) < maxParallelSectors {
+		if maxParallelSectors != 0 {
+			if uint64(len(schedWindow.todo) + running) < maxParallelSectors {
+				newOpenWindows = append(newOpenWindows, window)
+			}
+		} else {
 			newOpenWindows = append(newOpenWindows, window)
 		}
 	}
