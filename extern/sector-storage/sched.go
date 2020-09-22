@@ -337,14 +337,11 @@ func (sh *scheduler) tryNewSched() {
 
 	newOpenWindows := make([]*schedWindowRequest, 0)
 	for wid, window := range schedWorkers {
-		schedWindow := schedWindow{
-			allocated: activeResources{},
-			todo:      make([]*workerRequest, 0),
-		}
+		schedWindow := schedWindow{}
 		maxParallelSectors := sh.workers[wid].w.MaxParallelSealingSector(context.Background())
+		running := len(sh.workers[wid].wt.Running())
 
 		for i := 0; i < sh.schedQueue.Len(); i++ {
-			running := len(sh.workers[wid].wt.Running())
 			task := (*sh.schedQueue)[i]
 			needRes := ResourceTable[task.taskType][sh.spt]
 
@@ -385,13 +382,14 @@ func (sh *scheduler) tryNewSched() {
 			}
 		}
 
-		if len(schedWindow.todo) == 0 {
-			newOpenWindows = append(newOpenWindows, window)
-			continue
+		if len(schedWindow.todo) > 0 {
+			log.Infof("assign %d jobs to worker %d", len(schedWindow.todo), wid)
+			window.done <- &schedWindow
 		}
 
-		log.Infof("assign %d jobs to worker %d", len(schedWindow.todo), wid)
-		window.done <- &schedWindow
+		if uint64(len(schedWindow.todo) + running) < maxParallelSectors {
+			newOpenWindows = append(newOpenWindows, window)
+		}
 	}
 
 	sh.openWindows = newOpenWindows
@@ -728,6 +726,7 @@ func (sh *scheduler) runWorker(wid WorkerID) {
 				worker.activeWindows = worker.activeWindows[:len(worker.activeWindows)-1]
 
 				windowsRequested--
+				log.Debugf("worker %d windowsRequested: %d", wid, windowsRequested)
 			}
 
 			worker.wndLk.Unlock()
