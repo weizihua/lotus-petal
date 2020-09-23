@@ -36,7 +36,7 @@ type WorkerAPI interface {
 
 	Fetch(context.Context, abi.SectorID, stores.SectorFileType, stores.PathType, stores.AcquireMode) error
 
-	CanHandleMoreTask(ctx context.Context, running uint64) bool
+	CanHandleMoreTask(ctx context.Context, running uint64, todos uint64) bool
 	MaxParallelSealingSector(ctx context.Context) uint64
 
 	Closing(context.Context) (<-chan struct{}, error)

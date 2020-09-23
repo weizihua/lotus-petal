@@ -317,9 +317,10 @@ type StorageMinerStruct struct {
 		PiecesGetPieceInfo func(ctx context.Context, pieceCid cid.Cid) (*piecestore.PieceInfo, error) `perm:"read"`
 		PiecesGetCIDInfo   func(ctx context.Context, payloadCid cid.Cid) (*piecestore.CIDInfo, error) `perm:"read"`
 
-		SchedQueue       func(ctx context.Context) []sectorstorage.Task                              `perm:"admin"`
-		SchedWorkerTodos func(ctx context.Context) map[sectorstorage.WorkerID][]sectorstorage.Todo   `perm:"admin"`
-		SchedWorkerLoad  func(ctx context.Context) map[sectorstorage.WorkerID]sectorstorage.LoadInfo `perm:"admin"`
+		SchedQueue           func(ctx context.Context) []sectorstorage.Task                              `perm:"admin"`
+		SchedWorkerTodos     func(ctx context.Context) map[sectorstorage.WorkerID][]sectorstorage.Todo   `perm:"admin"`
+		SchedWorkerLoad      func(ctx context.Context) map[sectorstorage.WorkerID]sectorstorage.LoadInfo `perm:"admin"`
+		SchedWorkerTaskTypes func(ctx context.Context) map[sectorstorage.WorkerID][]string               `perm:"admin"`
 	}
 }
 
@@ -349,8 +350,8 @@ type WorkerStruct struct {
 
 		Fetch func(context.Context, abi.SectorID, stores.SectorFileType, stores.PathType, stores.AcquireMode) error `perm:"admin"`
 
-		CanHandleMoreTask        func(ctx context.Context, running uint64) bool `perm:"admin"`
-		MaxParallelSealingSector func(ctx context.Context) uint64               `perm:"admin"`
+		CanHandleMoreTask        func(ctx context.Context, running uint64, todos uint64) bool `perm:"admin"`
+		MaxParallelSealingSector func(ctx context.Context) uint64                             `perm:"admin"`
 
 		Closing func(context.Context) (<-chan struct{}, error) `perm:"admin"`
 	}
@@ -1265,6 +1266,10 @@ func (c *StorageMinerStruct) SchedWorkerLoad(ctx context.Context) map[sectorstor
 	return c.Internal.SchedWorkerLoad(ctx)
 }
 
+func (c *StorageMinerStruct) SchedWorkerTaskTypes(ctx context.Context) map[sectorstorage.WorkerID][]string {
+	return c.Internal.SchedWorkerTaskTypes(ctx)
+}
+
 // WorkerStruct
 
 func (w *WorkerStruct) Version(ctx context.Context) (build.Version, error) {
@@ -1335,8 +1340,8 @@ func (w *WorkerStruct) Fetch(ctx context.Context, id abi.SectorID, fileType stor
 	return w.Internal.Fetch(ctx, id, fileType, ptype, am)
 }
 
-func (w *WorkerStruct) CanHandleMoreTask(ctx context.Context, running uint64) bool {
-	return w.Internal.CanHandleMoreTask(ctx, running)
+func (w *WorkerStruct) CanHandleMoreTask(ctx context.Context, running uint64, todos uint64) bool {
+	return w.Internal.CanHandleMoreTask(ctx, running, todos)
 }
 
 func (w *WorkerStruct) MaxParallelSealingSector(ctx context.Context) uint64 {

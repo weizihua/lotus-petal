@@ -146,3 +146,24 @@ func (m *Manager) WorkerLoad() map[WorkerID]LoadInfo {
 
 	return out
 }
+
+func (m *Manager) WorkerTaskTypes() map[WorkerID][]string {
+	var out = make(map[WorkerID][]string)
+	for wid, whandel := range m.sched.workers {
+
+		tt, err := whandel.w.TaskTypes(context.Background())
+		if err != nil {
+			log.Warn("get worker %d tasktypes failed: %s")
+			continue
+		}
+
+		types := make([]string, 0)
+		for typ, _ := range tt {
+			types = append(types, typ.Short())
+		}
+
+		out[wid] = types
+	}
+
+	return out
+}

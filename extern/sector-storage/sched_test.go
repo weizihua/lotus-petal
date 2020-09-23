@@ -106,7 +106,7 @@ func (s *schedTestWorker) Paths(ctx context.Context) ([]stores.StoragePath, erro
 	return s.paths, nil
 }
 
-func (s *schedTestWorker) CanHandleMoreTask(ctx context.Context, running uint64) bool {
+func (s *schedTestWorker) CanHandleMoreTask(ctx context.Context, running uint64, todos uint64) bool {
 	return true
 }
 

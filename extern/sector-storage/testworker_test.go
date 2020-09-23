@@ -97,7 +97,7 @@ func (t *testWorker) TaskTypes(ctx context.Context) (map[sealtasks.TaskType]stru
 	return t.acceptTasks, nil
 }
 
-func (t *testWorker) CanHandleMoreTask(ctx context.Context, running uint64) bool {
+func (t *testWorker) CanHandleMoreTask(ctx context.Context, running uint64, todos uint64) bool {
 	return true
 }
 

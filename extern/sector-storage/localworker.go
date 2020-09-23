@@ -304,12 +304,12 @@ func (l *LocalWorker) Close() error {
 	return nil
 }
 
-func (l *LocalWorker) CanHandleMoreTask(ctx context.Context, running uint64) bool {
+func (l *LocalWorker) CanHandleMoreTask(ctx context.Context, running uint64, todos uint64) bool {
 	if l.maxParallelSealingSector == 0 {
 		return true
 	}
 
-	if running < l.maxParallelSealingSector {
+	if running + todos < l.maxParallelSealingSector {
 		return true
 	}
 

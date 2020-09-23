@@ -94,6 +94,9 @@ var sealingWorkersCmd = &cli.Command{
 			return st[i].id < st[j].id
 		})
 
+		workerTasks := nodeApi.SchedWorkerTaskTypes(ctx)
+		workerLoad := nodeApi.SchedWorkerLoad(ctx)
+
 		for _, stat := range st {
 			gpuUse := "not "
 			gpuCol := color.FgBlue
@@ -137,6 +140,8 @@ var sealingWorkersCmd = &cli.Command{
 			for _, gpu := range stat.Info.Resources.GPUs {
 				fmt.Printf("\tGPU: %s\n", color.New(gpuCol).Sprintf("%s, %sused", gpu, gpuUse))
 			}
+			fmt.Printf("\tTaskTypes: %v\n", workerTasks[sectorstorage.WorkerID(stat.id)])
+			fmt.Printf("\tMaxParallelSealingSector: %d", workerLoad[sectorstorage.WorkerID(stat.id)].MaxLoad)
 		}
 
 		return nil
@@ -373,7 +378,7 @@ var sealingWorkerTodosCmd = &cli.Command{
 				continue
 			}
 
-			fmt.Printf("worker %d(%s):", wid, hostnames[uint64(wid)])
+			fmt.Printf("worker %d(%s):\n", wid, hostnames[uint64(wid)])
 
 			var todosTab = make([]workerTodosTable, len(todos))
 			for i, todo := range todos {

@@ -38,7 +38,7 @@ type Worker interface {
 	ReadPiece(context.Context, io.Writer, abi.SectorID, storiface.UnpaddedByteIndex, abi.UnpaddedPieceSize) (bool, error)
 
 	TaskTypes(context.Context) (map[sealtasks.TaskType]struct{}, error)
-	CanHandleMoreTask(ctx context.Context, running uint64) bool
+	CanHandleMoreTask(ctx context.Context, running uint64, todos uint64) bool
 	MaxParallelSealingSector(ctx context.Context) uint64
 
 	// Returns paths accessible to the worker
