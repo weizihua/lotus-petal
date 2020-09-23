@@ -225,6 +225,8 @@ func (sh *scheduler) runSched() {
 	iw := time.After(InitWait)
 	var initialised bool
 
+	timer := time.NewTimer(5 * time.Minute)
+
 	for {
 		var doSched bool
 
@@ -255,7 +257,10 @@ func (sh *scheduler) runSched() {
 		case <-sh.closing:
 			sh.schedClose()
 			return
+		case <-timer.C:
+			doSched = true
 		}
+		timer.Reset(5 * time.Minute)
 
 		if doSched && initialised {
 			// First gather any pending tasks, so we go through the scheduling loop
@@ -387,13 +392,13 @@ func (sh *scheduler) tryNewSched() {
 			window.done <- &schedWindow
 		}
 
-		//if maxParallelSectors != 0 {
-		//	if uint64(len(schedWindow.todo) + running) < maxParallelSectors {
-		//		newOpenWindows = append(newOpenWindows, window)
-		//	}
-		//} else {
-		//	newOpenWindows = append(newOpenWindows, window)
-		//}
+	//	if maxParallelSectors != 0 {
+	//		if uint64(len(schedWindow.todo) + running) < maxParallelSectors {
+	//			newOpenWindows = append(newOpenWindows, window)
+	//		}
+	//	} else {
+	//		newOpenWindows = append(newOpenWindows, window)
+	//	}
 	}
 
 	//sh.openWindows = newOpenWindows
@@ -654,9 +659,12 @@ func (sh *scheduler) runWorker(wid WorkerID) {
 				worker: wid,
 				done:   scheduledWindows,
 			}
+			log.Infof("worker %d open new window", wid)
 		}
 
 		for {
+			for ; windowsRequested < SchedWindows; windowsRequested++ {}
+
 			select {
 			case w := <-scheduledWindows:
 				worker.wndLk.Lock()
@@ -675,7 +683,7 @@ func (sh *scheduler) runWorker(wid WorkerID) {
 			sh.workersLk.RLock()
 			worker.wndLk.Lock()
 
-			_ = sh.workerCompactWindows(worker, wid)
+			windowsRequested -= sh.workerCompactWindows(worker, wid)
 
 		assignLoop:
 			// process windows in order
@@ -720,8 +728,8 @@ func (sh *scheduler) runWorker(wid WorkerID) {
 				worker.activeWindows[len(worker.activeWindows)-1] = nil
 				worker.activeWindows = worker.activeWindows[:len(worker.activeWindows)-1]
 
-				//windowsRequested--
-				//log.Debugf("worker %d windowsRequested: %d", wid, windowsRequested)
+				windowsRequested--
+				log.Debugf("worker %d windowsRequested: %d", wid, windowsRequested)
 			}
 
 			worker.wndLk.Unlock()
