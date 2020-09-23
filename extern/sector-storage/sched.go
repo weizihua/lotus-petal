@@ -333,7 +333,7 @@ func (sh *scheduler) tryNewSched() {
 			curActive += len(window.todo)
 		}
 
-		if !whandle.w.CanHandleMoreTask(context.Background(), uint64(len(whandle.wt.Running()))) {
+		if !whandle.w.CanHandleMoreTask(context.Background(), uint64(len(whandle.wt.Running())), uint64(curActive)) {
 			log.Warnf("worker %d can't handle more task", window.worker)
 			continue
 		}
