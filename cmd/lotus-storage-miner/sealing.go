@@ -141,7 +141,7 @@ var sealingWorkersCmd = &cli.Command{
 				fmt.Printf("\tGPU: %s\n", color.New(gpuCol).Sprintf("%s, %sused", gpu, gpuUse))
 			}
 			fmt.Printf("\tTaskTypes: %v\n", workerTasks[sectorstorage.WorkerID(stat.id)])
-			fmt.Printf("\tMaxParallelSealingSector: %d", workerLoad[sectorstorage.WorkerID(stat.id)].MaxLoad)
+			fmt.Printf("\tMaxParallelSealingSector: %d\n", workerLoad[sectorstorage.WorkerID(stat.id)].MaxLoad)
 		}
 
 		return nil
