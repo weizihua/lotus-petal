@@ -295,6 +295,7 @@ func (sm *StorageMinerAPI) WorkerConnect(ctx context.Context, url string) error 
 			return
 		}
 
+		log.Infof("watching remote worker %s", url)
 		select {
 		case <-closing:
 			log.Warnf("worker %s lose, try reconnect...", url)
