@@ -288,6 +288,22 @@ func (sm *StorageMinerAPI) WorkerConnect(ctx context.Context, url string) error 
 
 	log.Infof("Connected to a remote worker at %s", url)
 
+	go func (ctx context.Context, w *remoteWorker, url string) {
+		closing, err := w.Closing(ctx)
+		if err != nil {
+			log.Errorf("watchRemoteWorker get closing channel failed: %s", err)
+			return
+		}
+
+		select {
+		case <-closing:
+			log.Warnf("worker %s lose, try reconnect...", url)
+			if err := sm.WorkerConnect(ctx, url); err != nil {
+				log.Errorf("worker %s try reconnect failed: %s", err)
+			}
+		}
+	}(context.Background(), w, url)
+
 	return sm.StorageMgr.AddWorker(ctx, w)
 }
 
