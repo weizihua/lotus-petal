@@ -169,6 +169,7 @@
   * [SyncState](#SyncState)
   * [SyncSubmitBlock](#SyncSubmitBlock)
   * [SyncUnmarkBad](#SyncUnmarkBad)
+  * [SyncValidateTipset](#SyncValidateTipset)
 * [Wallet](#Wallet)
   * [WalletBalance](#WalletBalance)
   * [WalletDefaultAddress](#WalletDefaultAddress)
@@ -181,6 +182,7 @@
   * [WalletSetDefault](#WalletSetDefault)
   * [WalletSign](#WalletSign)
   * [WalletSignMessage](#WalletSignMessage)
+  * [WalletValidateAddress](#WalletValidateAddress)
   * [WalletVerify](#WalletVerify)
 ## 
 
@@ -1120,20 +1122,14 @@ Inputs:
 Response:
 ```json
 {
-  "Ask": {
-    "Price": "0",
-    "VerifiedPrice": "0",
-    "MinPieceSize": 1032,
-    "MaxPieceSize": 1032,
-    "Miner": "t01234",
-    "Timestamp": 10101,
-    "Expiry": 10101,
-    "SeqNo": 42
-  },
-  "Signature": {
-    "Type": 2,
-    "Data": "Ynl0ZSBhcnJheQ=="
-  }
+  "Price": "0",
+  "VerifiedPrice": "0",
+  "MinPieceSize": 1032,
+  "MaxPieceSize": 1032,
+  "Miner": "t01234",
+  "Timestamp": 10101,
+  "Expiry": 10101,
+  "SeqNo": 42
 }
 ```
 
@@ -4379,6 +4375,28 @@ Inputs:
 
 Response: `{}`
 
+### SyncValidateTipset
+SyncValidateTipset indicates whether the provided tipset is valid or not
+
+
+Perms: read
+
+Inputs:
+```json
+[
+  [
+    {
+      "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
+    },
+    {
+      "/": "bafy2bzacebp3shtrn43k7g3unredz7fxn4gj533d3o43tqn2p2ipxxhrvchve"
+    }
+  ]
+]
+```
+
+Response: `true`
+
 ## Wallet
 
 
@@ -4584,6 +4602,21 @@ Response:
   }
 }
 ```
+
+### WalletValidateAddress
+WalletValidateAddress validates whether a given string can be decoded as a well-formed address
+
+
+Perms: read
+
+Inputs:
+```json
+[
+  "string value"
+]
+```
+
+Response: `"t01234"`
 
 ### WalletVerify
 WalletVerify takes an address, a signature, and some bytes, and indicates whether the signature is valid.

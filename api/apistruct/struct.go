@@ -113,6 +113,7 @@ type FullNodeStruct struct {
 		SyncMarkBad        func(ctx context.Context, bcid cid.Cid) error                `perm:"admin"`
 		SyncUnmarkBad      func(ctx context.Context, bcid cid.Cid) error                `perm:"admin"`
 		SyncCheckBad       func(ctx context.Context, bcid cid.Cid) (string, error)      `perm:"read"`
+		SyncValidateTipset func(ctx context.Context, tsk types.TipSetKey) (bool, error) `perm:"read"`
 
 		MpoolGetConfig func(context.Context) (*types.MpoolConfig, error) `perm:"read"`
 		MpoolSetConfig func(context.Context, *types.MpoolConfig) error   `perm:"write"`
@@ -130,18 +131,19 @@ type FullNodeStruct struct {
 		MinerGetBaseInfo func(context.Context, address.Address, abi.ChainEpoch, types.TipSetKey) (*api.MiningBaseInfo, error) `perm:"read"`
 		MinerCreateBlock func(context.Context, *api.BlockTemplate) (*types.BlockMsg, error)                                   `perm:"write"`
 
-		WalletNew            func(context.Context, crypto.SigType) (address.Address, error)                       `perm:"write"`
-		WalletHas            func(context.Context, address.Address) (bool, error)                                 `perm:"write"`
-		WalletList           func(context.Context) ([]address.Address, error)                                     `perm:"write"`
-		WalletBalance        func(context.Context, address.Address) (types.BigInt, error)                         `perm:"read"`
-		WalletSign           func(context.Context, address.Address, []byte) (*crypto.Signature, error)            `perm:"sign"`
-		WalletSignMessage    func(context.Context, address.Address, *types.Message) (*types.SignedMessage, error) `perm:"sign"`
-		WalletVerify         func(context.Context, address.Address, []byte, *crypto.Signature) (bool, error)      `perm:"read"`
-		WalletDefaultAddress func(context.Context) (address.Address, error)                                       `perm:"write"`
-		WalletSetDefault     func(context.Context, address.Address) error                                         `perm:"admin"`
-		WalletExport         func(context.Context, address.Address) (*types.KeyInfo, error)                       `perm:"admin"`
-		WalletImport         func(context.Context, *types.KeyInfo) (address.Address, error)                       `perm:"admin"`
-		WalletDelete         func(context.Context, address.Address) error                                         `perm:"write"`
+		WalletNew             func(context.Context, crypto.SigType) (address.Address, error)                       `perm:"write"`
+		WalletHas             func(context.Context, address.Address) (bool, error)                                 `perm:"write"`
+		WalletList            func(context.Context) ([]address.Address, error)                                     `perm:"write"`
+		WalletBalance         func(context.Context, address.Address) (types.BigInt, error)                         `perm:"read"`
+		WalletSign            func(context.Context, address.Address, []byte) (*crypto.Signature, error)            `perm:"sign"`
+		WalletSignMessage     func(context.Context, address.Address, *types.Message) (*types.SignedMessage, error) `perm:"sign"`
+		WalletVerify          func(context.Context, address.Address, []byte, *crypto.Signature) (bool, error)      `perm:"read"`
+		WalletDefaultAddress  func(context.Context) (address.Address, error)                                       `perm:"write"`
+		WalletSetDefault      func(context.Context, address.Address) error                                         `perm:"admin"`
+		WalletExport          func(context.Context, address.Address) (*types.KeyInfo, error)                       `perm:"admin"`
+		WalletImport          func(context.Context, *types.KeyInfo) (address.Address, error)                       `perm:"admin"`
+		WalletDelete          func(context.Context, address.Address) error                                         `perm:"write"`
+		WalletValidateAddress func(context.Context, string) (address.Address, error)                               `perm:"read"`
 
 		ClientImport                              func(ctx context.Context, ref api.FileRef) (*api.ImportRes, error)                                                `perm:"admin"`
 		ClientListImports                         func(ctx context.Context) ([]api.Import, error)                                                                   `perm:"write"`
@@ -155,7 +157,7 @@ type FullNodeStruct struct {
 		ClientGetDealUpdates                      func(ctx context.Context) (<-chan api.DealInfo, error)                                                            `perm:"read"`
 		ClientRetrieve                            func(ctx context.Context, order api.RetrievalOrder, ref *api.FileRef) error                                       `perm:"admin"`
 		ClientRetrieveWithEvents                  func(ctx context.Context, order api.RetrievalOrder, ref *api.FileRef) (<-chan marketevents.RetrievalEvent, error) `perm:"admin"`
-		ClientQueryAsk                            func(ctx context.Context, p peer.ID, miner address.Address) (*storagemarket.SignedStorageAsk, error)              `perm:"read"`
+		ClientQueryAsk                            func(ctx context.Context, p peer.ID, miner address.Address) (*storagemarket.StorageAsk, error)                    `perm:"read"`
 		ClientCalcCommP                           func(ctx context.Context, inpath string) (*api.CommPRet, error)                                                   `perm:"read"`
 		ClientGenCar                              func(ctx context.Context, ref api.FileRef, outpath string) error                                                  `perm:"write"`
 		ClientDealSize                            func(ctx context.Context, root cid.Cid) (api.DataSize, error)                                                     `perm:"read"`
@@ -493,7 +495,7 @@ func (c *FullNodeStruct) ClientRetrieveWithEvents(ctx context.Context, order api
 	return c.Internal.ClientRetrieveWithEvents(ctx, order, ref)
 }
 
-func (c *FullNodeStruct) ClientQueryAsk(ctx context.Context, p peer.ID, miner address.Address) (*storagemarket.SignedStorageAsk, error) {
+func (c *FullNodeStruct) ClientQueryAsk(ctx context.Context, p peer.ID, miner address.Address) (*storagemarket.StorageAsk, error) {
 	return c.Internal.ClientQueryAsk(ctx, p, miner)
 }
 func (c *FullNodeStruct) ClientCalcCommP(ctx context.Context, inpath string) (*api.CommPRet, error) {
@@ -640,6 +642,10 @@ func (c *FullNodeStruct) WalletDelete(ctx context.Context, addr address.Address)
 	return c.Internal.WalletDelete(ctx, addr)
 }
 
+func (c *FullNodeStruct) WalletValidateAddress(ctx context.Context, str string) (address.Address, error) {
+	return c.Internal.WalletValidateAddress(ctx, str)
+}
+
 func (c *FullNodeStruct) MpoolGetNonce(ctx context.Context, addr address.Address) (uint64, error) {
 	return c.Internal.MpoolGetNonce(ctx, addr)
 }
@@ -742,6 +748,10 @@ func (c *FullNodeStruct) SyncUnmarkBad(ctx context.Context, bcid cid.Cid) error 
 
 func (c *FullNodeStruct) SyncCheckBad(ctx context.Context, bcid cid.Cid) (string, error) {
 	return c.Internal.SyncCheckBad(ctx, bcid)
+}
+
+func (c *FullNodeStruct) SyncValidateTipset(ctx context.Context, tsk types.TipSetKey) (bool, error) {
+	return c.Internal.SyncValidateTipset(ctx, tsk)
 }
 
 func (c *FullNodeStruct) StateNetworkName(ctx context.Context) (dtypes.NetworkName, error) {

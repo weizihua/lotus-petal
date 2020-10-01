@@ -176,6 +176,9 @@ type FullNode interface {
 	// the reason.
 	SyncCheckBad(ctx context.Context, bcid cid.Cid) (string, error)
 
+	// SyncValidateTipset indicates whether the provided tipset is valid or not
+	SyncValidateTipset(ctx context.Context, tsk types.TipSetKey) (bool, error)
+
 	// MethodGroup: Mpool
 	// The Mpool methods are for interacting with the message pool. The message pool
 	// manages all incoming and outgoing 'messages' going over the network.
@@ -244,6 +247,8 @@ type FullNode interface {
 	WalletImport(context.Context, *types.KeyInfo) (address.Address, error)
 	// WalletDelete deletes an address from the wallet.
 	WalletDelete(context.Context, address.Address) error
+	// WalletValidateAddress validates whether a given string can be decoded as a well-formed address
+	WalletValidateAddress(context.Context, string) (address.Address, error)
 
 	// Other
 
@@ -275,7 +280,7 @@ type FullNode interface {
 	// of status updates.
 	ClientRetrieveWithEvents(ctx context.Context, order RetrievalOrder, ref *FileRef) (<-chan marketevents.RetrievalEvent, error)
 	// ClientQueryAsk returns a signed StorageAsk from the specified miner.
-	ClientQueryAsk(ctx context.Context, p peer.ID, miner address.Address) (*storagemarket.SignedStorageAsk, error)
+	ClientQueryAsk(ctx context.Context, p peer.ID, miner address.Address) (*storagemarket.StorageAsk, error)
 	// ClientCalcCommP calculates the CommP for a specified file
 	ClientCalcCommP(ctx context.Context, inpath string) (*CommPRet, error)
 	// ClientGenCar generates a CAR file for the specified file.
