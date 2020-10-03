@@ -258,7 +258,6 @@ func (sh *scheduler) runSched() {
 		case <-timer.C:
 			doSched = true
 		}
-		timer.Reset(5 * time.Minute)
 
 		if doSched && initialised {
 			// First gather any pending tasks, so we go through the scheduling loop
@@ -278,7 +277,8 @@ func (sh *scheduler) runSched() {
 				}
 			}
 
-			sh.tryNewSched()
+			sh.trySched()
+			timer.Reset(5 * time.Minute)
 		}
 
 	}
@@ -304,7 +304,10 @@ func (sh *scheduler) diag() SchedDiagInfo {
 	return out
 }
 
-func (sh *scheduler) tryNewSched() {
+func (sh *scheduler) trySched() {
+	log.Debugf("start sched")
+	st := time.Now()
+
 	if sh.schedQueue.Len() == 0 || len(sh.openWindows) == 0 {
 		return
 	}
@@ -395,6 +398,8 @@ func (sh *scheduler) tryNewSched() {
 			window.done <- &schedWindow
 		}
 	}
+
+	log.Debugf("sched take: %s", time.Now().Sub(st))
 }
 
 //func (sh *scheduler) tryOfficialSched() {
