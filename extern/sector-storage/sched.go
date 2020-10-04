@@ -317,6 +317,8 @@ func (sh *scheduler) trySched() {
 
 	var schedWorkers = make(map[WorkerID]*schedWindowRequest)
 
+	log.Debugf("openWindows: %+v", sh.openWindows)
+
 	for i, window := range sh.openWindows {
 		if window == nil {
 			log.Warnf("openWindows[%d] is nil point", i)
@@ -341,6 +343,8 @@ func (sh *scheduler) trySched() {
 
 		schedWorkers[window.worker] = window
 	}
+
+	log.Debugf("schedWorkers: %+v", schedWorkers)
 
 	if len(schedWorkers) == 0 {
 		return
@@ -378,6 +382,8 @@ func (sh *scheduler) trySched() {
 					"curWindowTodo", len(schedWindow.todo))
 
 				if uint64(len(schedWindow.todo)+running+curActive+1) <= maxParallelSectors {
+					log.Debugf("append task %s sector %d to worker %d", task.taskType, task.sector.Number,
+						window.worker)
 					schedWindow.todo = append(schedWindow.todo, task)
 					schedWindow.allocated.add(sh.workers[wid].info.Resources, needRes)
 					sh.schedQueue.Remove(i)
@@ -386,6 +392,8 @@ func (sh *scheduler) trySched() {
 					break
 				}
 			} else {
+				log.Debugf("append task %s sector %d to worker %d", task.taskType, task.sector.Number,
+					window.worker)
 				schedWindow.todo = append(schedWindow.todo, task)
 				schedWindow.allocated.add(sh.workers[wid].info.Resources, needRes)
 				sh.schedQueue.Remove(i)
