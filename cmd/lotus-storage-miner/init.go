@@ -120,6 +120,9 @@ var initCmd = &cli.Command{
 			EnvVars: []string{"LOTUS_SECTOR_STORAGE_PATH"},
 		},
 	},
+	Subcommands: []*cli.Command{
+		initRestoreCmd,
+	},
 	Action: func(cctx *cli.Context) error {
 		log.Info("Initializing lotus miner")
 

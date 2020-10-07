@@ -39,6 +39,8 @@ func main() {
 		consensusCmd,
 		serveDealStatsCmd,
 		syncCmd,
+		stateTreePruneCmd,
+		datastoreCmd,
 	}
 
 	app := &cli.App{

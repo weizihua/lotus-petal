@@ -123,7 +123,9 @@ type FullNodeStruct struct {
 		MpoolPending func(context.Context, types.TipSetKey) ([]*types.SignedMessage, error) `perm:"read"`
 		MpoolClear   func(context.Context, bool) error                                      `perm:"write"`
 
-		MpoolPush        func(context.Context, *types.SignedMessage) (cid.Cid, error)                              `perm:"write"`
+		MpoolPush          func(context.Context, *types.SignedMessage) (cid.Cid, error) `perm:"write"`
+		MpoolPushUntrusted func(context.Context, *types.SignedMessage) (cid.Cid, error) `perm:"write"`
+
 		MpoolPushMessage func(context.Context, *types.Message, *api.MessageSendSpec) (*types.SignedMessage, error) `perm:"sign"`
 		MpoolGetNonce    func(context.Context, address.Address) (uint64, error)                                    `perm:"read"`
 		MpoolSub         func(context.Context) (<-chan api.MpoolUpdate, error)                                     `perm:"read"`
@@ -203,7 +205,9 @@ type FullNodeStruct struct {
 		StateMinerSectorCount              func(context.Context, address.Address, types.TipSetKey) (api.MinerSectors, error)                                   `perm:"read"`
 		StateListMessages                  func(ctx context.Context, match *types.Message, tsk types.TipSetKey, toht abi.ChainEpoch) ([]cid.Cid, error)        `perm:"read"`
 		StateCompute                       func(context.Context, abi.ChainEpoch, []*types.Message, types.TipSetKey) (*api.ComputeStateOutput, error)           `perm:"read"`
+		StateVerifierStatus                func(context.Context, address.Address, types.TipSetKey) (*abi.StoragePower, error)                                  `perm:"read"`
 		StateVerifiedClientStatus          func(context.Context, address.Address, types.TipSetKey) (*abi.StoragePower, error)                                  `perm:"read"`
+		StateVerifiedRegistryRootKey       func(ctx context.Context, tsk types.TipSetKey) (address.Address, error)                                             `perm:"read"`
 		StateDealProviderCollateralBounds  func(context.Context, abi.PaddedPieceSize, bool, types.TipSetKey) (api.DealCollateralBounds, error)                 `perm:"read"`
 		StateCirculatingSupply             func(context.Context, types.TipSetKey) (api.CirculatingSupply, error)                                               `perm:"read"`
 		StateNetworkVersion                func(context.Context, types.TipSetKey) (stnetwork.Version, error)                                                   `perm:"read"`
@@ -240,6 +244,8 @@ type FullNodeStruct struct {
 		PaychVoucherCreate          func(context.Context, address.Address, big.Int, uint64) (*api.VoucherCreateResult, error)                 `perm:"sign"`
 		PaychVoucherList            func(context.Context, address.Address) ([]*paych.SignedVoucher, error)                                    `perm:"write"`
 		PaychVoucherSubmit          func(context.Context, address.Address, *paych.SignedVoucher, []byte, []byte) (cid.Cid, error)             `perm:"sign"`
+
+		CreateBackup func(ctx context.Context, fpath string) error `perm:"admin"`
 	}
 }
 
@@ -325,6 +331,8 @@ type StorageMinerStruct struct {
 		SchedWorkerTodos     func(ctx context.Context) map[sectorstorage.WorkerID][]sectorstorage.Todo   `perm:"admin"`
 		SchedWorkerLoad      func(ctx context.Context) map[sectorstorage.WorkerID]sectorstorage.LoadInfo `perm:"admin"`
 		SchedWorkerTaskTypes func(ctx context.Context) map[sectorstorage.WorkerID][]string               `perm:"admin"`
+
+		CreateBackup func(ctx context.Context, fpath string) error `perm:"admin"`
 	}
 }
 
@@ -560,6 +568,10 @@ func (c *FullNodeStruct) MpoolClear(ctx context.Context, local bool) error {
 
 func (c *FullNodeStruct) MpoolPush(ctx context.Context, smsg *types.SignedMessage) (cid.Cid, error) {
 	return c.Internal.MpoolPush(ctx, smsg)
+}
+
+func (c *FullNodeStruct) MpoolPushUntrusted(ctx context.Context, smsg *types.SignedMessage) (cid.Cid, error) {
+	return c.Internal.MpoolPushUntrusted(ctx, smsg)
 }
 
 func (c *FullNodeStruct) MpoolPushMessage(ctx context.Context, msg *types.Message, spec *api.MessageSendSpec) (*types.SignedMessage, error) {
@@ -902,8 +914,16 @@ func (c *FullNodeStruct) StateCompute(ctx context.Context, height abi.ChainEpoch
 	return c.Internal.StateCompute(ctx, height, msgs, tsk)
 }
 
+func (c *FullNodeStruct) StateVerifierStatus(ctx context.Context, addr address.Address, tsk types.TipSetKey) (*abi.StoragePower, error) {
+	return c.Internal.StateVerifierStatus(ctx, addr, tsk)
+}
+
 func (c *FullNodeStruct) StateVerifiedClientStatus(ctx context.Context, addr address.Address, tsk types.TipSetKey) (*abi.StoragePower, error) {
 	return c.Internal.StateVerifiedClientStatus(ctx, addr, tsk)
+}
+
+func (c *FullNodeStruct) StateVerifiedRegistryRootKey(ctx context.Context, tsk types.TipSetKey) (address.Address, error) {
+	return c.Internal.StateVerifiedRegistryRootKey(ctx, tsk)
 }
 
 func (c *FullNodeStruct) StateDealProviderCollateralBounds(ctx context.Context, size abi.PaddedPieceSize, verified bool, tsk types.TipSetKey) (api.DealCollateralBounds, error) {
@@ -1032,6 +1052,10 @@ func (c *FullNodeStruct) PaychNewPayment(ctx context.Context, from, to address.A
 
 func (c *FullNodeStruct) PaychVoucherSubmit(ctx context.Context, ch address.Address, sv *paych.SignedVoucher, secret []byte, proof []byte) (cid.Cid, error) {
 	return c.Internal.PaychVoucherSubmit(ctx, ch, sv, secret, proof)
+}
+
+func (c *FullNodeStruct) CreateBackup(ctx context.Context, fpath string) error {
+	return c.Internal.CreateBackup(ctx, fpath)
 }
 
 // StorageMinerStruct
@@ -1288,6 +1312,10 @@ func (c *StorageMinerStruct) SchedWorkerLoad(ctx context.Context) map[sectorstor
 
 func (c *StorageMinerStruct) SchedWorkerTaskTypes(ctx context.Context) map[sectorstorage.WorkerID][]string {
 	return c.Internal.SchedWorkerTaskTypes(ctx)
+}
+
+func (c *StorageMinerStruct) CreateBackup(ctx context.Context, fpath string) error {
+	return c.Internal.CreateBackup(ctx, fpath)
 }
 
 // WorkerStruct

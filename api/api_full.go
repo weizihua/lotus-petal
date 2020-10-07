@@ -192,6 +192,9 @@ type FullNode interface {
 	// MpoolPush pushes a signed message to mempool.
 	MpoolPush(context.Context, *types.SignedMessage) (cid.Cid, error)
 
+	// MpoolPushUntrusted pushes a signed message to mempool from untrusted sources.
+	MpoolPushUntrusted(context.Context, *types.SignedMessage) (cid.Cid, error)
+
 	// MpoolPushMessage atomically assigns a nonce, signs, and pushes a message
 	// to mempool.
 	// maxFee is only used when GasFeeCap/GasPremium fields aren't specified
@@ -390,10 +393,16 @@ type FullNode interface {
 	// StateCompute is a flexible command that applies the given messages on the given tipset.
 	// The messages are run as though the VM were at the provided height.
 	StateCompute(context.Context, abi.ChainEpoch, []*types.Message, types.TipSetKey) (*ComputeStateOutput, error)
+	// StateVerifierStatus returns the data cap for the given address.
+	// Returns nil if there is no entry in the data cap table for the
+	// address.
+	StateVerifierStatus(ctx context.Context, addr address.Address, tsk types.TipSetKey) (*abi.StoragePower, error)
 	// StateVerifiedClientStatus returns the data cap for the given address.
 	// Returns nil if there is no entry in the data cap table for the
 	// address.
 	StateVerifiedClientStatus(ctx context.Context, addr address.Address, tsk types.TipSetKey) (*abi.StoragePower, error)
+	// StateVerifiedClientStatus returns the address of the Verified Registry's root key
+	StateVerifiedRegistryRootKey(ctx context.Context, tsk types.TipSetKey) (address.Address, error)
 	// StateDealProviderCollateralBounds returns the min and max collateral a storage provider
 	// can issue. It takes the deal size and verified status as parameters.
 	StateDealProviderCollateralBounds(context.Context, abi.PaddedPieceSize, bool, types.TipSetKey) (DealCollateralBounds, error)
@@ -475,6 +484,12 @@ type FullNode interface {
 	PaychVoucherAdd(context.Context, address.Address, *paych.SignedVoucher, []byte, types.BigInt) (types.BigInt, error)
 	PaychVoucherList(context.Context, address.Address) ([]*paych.SignedVoucher, error)
 	PaychVoucherSubmit(context.Context, address.Address, *paych.SignedVoucher, []byte, []byte) (cid.Cid, error)
+
+	// CreateBackup creates node backup onder the specified file name. The
+	// method requires that the lotus daemon is running with the
+	// LOTUS_BACKUP_BASE_PATH environment variable set to some path, and that
+	// the path specified when calling CreateBackup is within the base path
+	CreateBackup(ctx context.Context, fpath string) error
 }
 
 type FileRef struct {
@@ -521,6 +536,7 @@ type DealInfo struct {
 	DealID abi.DealID
 
 	CreationTime time.Time
+	Verified     bool
 }
 
 type MsgLookup struct {
@@ -796,14 +812,14 @@ type CirculatingSupply struct {
 }
 
 type MiningBaseInfo struct {
-	MinerPower      types.BigInt
-	NetworkPower    types.BigInt
-	Sectors         []builtin.SectorInfo
-	WorkerKey       address.Address
-	SectorSize      abi.SectorSize
-	PrevBeaconEntry types.BeaconEntry
-	BeaconEntries   []types.BeaconEntry
-	HasMinPower     bool
+	MinerPower        types.BigInt
+	NetworkPower      types.BigInt
+	Sectors           []builtin.SectorInfo
+	WorkerKey         address.Address
+	SectorSize        abi.SectorSize
+	PrevBeaconEntry   types.BeaconEntry
+	BeaconEntries     []types.BeaconEntry
+	EligibleForMining bool
 }
 
 type BlockTemplate struct {

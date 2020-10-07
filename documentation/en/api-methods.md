@@ -50,6 +50,8 @@
   * [ClientRetrieveTryRestartInsufficientFunds](#ClientRetrieveTryRestartInsufficientFunds)
   * [ClientRetrieveWithEvents](#ClientRetrieveWithEvents)
   * [ClientStartDeal](#ClientStartDeal)
+* [Create](#Create)
+  * [CreateBackup](#CreateBackup)
 * [Gas](#Gas)
   * [GasEstimateFeeCap](#GasEstimateFeeCap)
   * [GasEstimateGasLimit](#GasEstimateGasLimit)
@@ -72,6 +74,7 @@
   * [MpoolPending](#MpoolPending)
   * [MpoolPush](#MpoolPush)
   * [MpoolPushMessage](#MpoolPushMessage)
+  * [MpoolPushUntrusted](#MpoolPushUntrusted)
   * [MpoolSelect](#MpoolSelect)
   * [MpoolSetConfig](#MpoolSetConfig)
   * [MpoolSub](#MpoolSub)
@@ -160,6 +163,8 @@
   * [StateSectorPartition](#StateSectorPartition)
   * [StateSectorPreCommitInfo](#StateSectorPreCommitInfo)
   * [StateVerifiedClientStatus](#StateVerifiedClientStatus)
+  * [StateVerifiedRegistryRootKey](#StateVerifiedRegistryRootKey)
+  * [StateVerifierStatus](#StateVerifierStatus)
   * [StateWaitMsg](#StateWaitMsg)
 * [Sync](#Sync)
   * [SyncCheckBad](#SyncCheckBad)
@@ -347,7 +352,7 @@ Inputs:
 Response:
 ```json
 {
-  "Miner": "t01234",
+  "Miner": "f01234",
   "Ticket": {
     "VRFProof": "Ynl0ZSBhcnJheQ=="
   },
@@ -444,8 +449,8 @@ Response:
 ```json
 {
   "Version": 42,
-  "To": "t01234",
-  "From": "t01234",
+  "To": "f01234",
+  "From": "f01234",
   "Nonce": 42,
   "Value": "0",
   "GasLimit": 9,
@@ -937,7 +942,7 @@ Response:
   },
   "State": 42,
   "Message": "string value",
-  "Provider": "t01234",
+  "Provider": "f01234",
   "DataRef": {
     "TransferType": "string value",
     "Root": {
@@ -953,7 +958,8 @@ Response:
   "PricePerEpoch": "0",
   "Duration": 42,
   "DealID": 5432,
-  "CreationTime": "0001-01-01T00:00:00Z"
+  "CreationTime": "0001-01-01T00:00:00Z",
+  "Verified": true
 }
 ```
 
@@ -973,7 +979,7 @@ Response:
   },
   "State": 42,
   "Message": "string value",
-  "Provider": "t01234",
+  "Provider": "f01234",
   "DataRef": {
     "TransferType": "string value",
     "Root": {
@@ -989,7 +995,8 @@ Response:
   "PricePerEpoch": "0",
   "Duration": 42,
   "DealID": 5432,
-  "CreationTime": "0001-01-01T00:00:00Z"
+  "CreationTime": "0001-01-01T00:00:00Z",
+  "Verified": true
 }
 ```
 
@@ -1075,7 +1082,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   {
     "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
   },
@@ -1096,9 +1103,9 @@ Response:
   "UnsealPrice": "0",
   "PaymentInterval": 42,
   "PaymentIntervalIncrease": 42,
-  "Miner": "t01234",
+  "Miner": "f01234",
   "MinerPeer": {
-    "Address": "t01234",
+    "Address": "f01234",
     "ID": "12D3KooWGzxzKZYveHXtpG6AsrUJBcWxHBFS2HsEoGTxrMLvKXtf",
     "PieceCID": null
   }
@@ -1115,7 +1122,7 @@ Inputs:
 ```json
 [
   "12D3KooWGzxzKZYveHXtpG6AsrUJBcWxHBFS2HsEoGTxrMLvKXtf",
-  "t01234"
+  "f01234"
 ]
 ```
 
@@ -1126,7 +1133,7 @@ Response:
   "VerifiedPrice": "0",
   "MinPieceSize": 1032,
   "MaxPieceSize": 1032,
-  "Miner": "t01234",
+  "Miner": "f01234",
   "Timestamp": 10101,
   "Expiry": 10101,
   "SeqNo": 42
@@ -1167,10 +1174,10 @@ Inputs:
     "UnsealPrice": "0",
     "PaymentInterval": 42,
     "PaymentIntervalIncrease": 42,
-    "Client": "t01234",
-    "Miner": "t01234",
+    "Client": "f01234",
+    "Miner": "f01234",
     "MinerPeer": {
-      "Address": "t01234",
+      "Address": "f01234",
       "ID": "12D3KooWGzxzKZYveHXtpG6AsrUJBcWxHBFS2HsEoGTxrMLvKXtf",
       "PieceCID": null
     }
@@ -1194,7 +1201,7 @@ Perms: write
 Inputs:
 ```json
 [
-  "t01234"
+  "f01234"
 ]
 ```
 
@@ -1220,10 +1227,10 @@ Inputs:
     "UnsealPrice": "0",
     "PaymentInterval": 42,
     "PaymentIntervalIncrease": 42,
-    "Client": "t01234",
-    "Miner": "t01234",
+    "Client": "f01234",
+    "Miner": "f01234",
     "MinerPeer": {
-      "Address": "t01234",
+      "Address": "f01234",
       "ID": "12D3KooWGzxzKZYveHXtpG6AsrUJBcWxHBFS2HsEoGTxrMLvKXtf",
       "PieceCID": null
     }
@@ -1264,8 +1271,8 @@ Inputs:
       "PieceCid": null,
       "PieceSize": 1024
     },
-    "Wallet": "t01234",
-    "Miner": "t01234",
+    "Wallet": "f01234",
+    "Miner": "f01234",
     "EpochPrice": "0",
     "MinBlocksDuration": 42,
     "ProviderCollateral": "0",
@@ -1277,6 +1284,27 @@ Inputs:
 ```
 
 Response: `null`
+
+## Create
+
+
+### CreateBackup
+CreateBackup creates node backup onder the specified file name. The
+method requires that the lotus daemon is running with the
+LOTUS_BACKUP_BASE_PATH environment variable set to some path, and that
+the path specified when calling CreateBackup is within the base path
+
+
+Perms: admin
+
+Inputs:
+```json
+[
+  "string value"
+]
+```
+
+Response: `{}`
 
 ## Gas
 
@@ -1292,8 +1320,8 @@ Inputs:
 [
   {
     "Version": 42,
-    "To": "t01234",
-    "From": "t01234",
+    "To": "f01234",
+    "From": "f01234",
     "Nonce": 42,
     "Value": "0",
     "GasLimit": 9,
@@ -1328,8 +1356,8 @@ Inputs:
 [
   {
     "Version": 42,
-    "To": "t01234",
-    "From": "t01234",
+    "To": "f01234",
+    "From": "f01234",
     "Nonce": 42,
     "Value": "0",
     "GasLimit": 9,
@@ -1362,7 +1390,7 @@ Inputs:
 ```json
 [
   42,
-  "t01234",
+  "f01234",
   9,
   [
     {
@@ -1388,8 +1416,8 @@ Inputs:
 [
   {
     "Version": 42,
-    "To": "t01234",
-    "From": "t01234",
+    "To": "f01234",
+    "From": "f01234",
     "Nonce": 42,
     "Value": "0",
     "GasLimit": 9,
@@ -1416,8 +1444,8 @@ Response:
 ```json
 {
   "Version": 42,
-  "To": "t01234",
-  "From": "t01234",
+  "To": "f01234",
+  "From": "f01234",
   "Nonce": 42,
   "Value": "0",
   "GasLimit": 9,
@@ -1479,8 +1507,8 @@ Perms: sign
 Inputs:
 ```json
 [
-  "t01234",
-  "t01234",
+  "f01234",
+  "f01234",
   "0"
 ]
 ```
@@ -1504,7 +1532,7 @@ Inputs:
 ```json
 [
   {
-    "Miner": "t01234",
+    "Miner": "f01234",
     "Parents": [
       {
         "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
@@ -1533,7 +1561,7 @@ Response:
 ```json
 {
   "Header": {
-    "Miner": "t01234",
+    "Miner": "f01234",
     "Ticket": {
       "VRFProof": "Ynl0ZSBhcnJheQ=="
     },
@@ -1580,7 +1608,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   10101,
   [
     {
@@ -1599,14 +1627,14 @@ Response:
   "MinerPower": "0",
   "NetworkPower": "0",
   "Sectors": null,
-  "WorkerKey": "t01234",
+  "WorkerKey": "f01234",
   "SectorSize": 34359738368,
   "PrevBeaconEntry": {
     "Round": 42,
     "Data": "Ynl0ZSBhcnJheQ=="
   },
   "BeaconEntries": null,
-  "HasMinPower": true
+  "EligibleForMining": true
 }
 ```
 
@@ -1660,7 +1688,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234"
+  "f01234"
 ]
 ```
 
@@ -1700,8 +1728,8 @@ Inputs:
   {
     "Message": {
       "Version": 42,
-      "To": "t01234",
-      "From": "t01234",
+      "To": "f01234",
+      "From": "f01234",
       "Nonce": 42,
       "Value": "0",
       "GasLimit": 9,
@@ -1741,8 +1769,8 @@ Inputs:
 [
   {
     "Version": 42,
-    "To": "t01234",
-    "From": "t01234",
+    "To": "f01234",
+    "From": "f01234",
     "Nonce": 42,
     "Value": "0",
     "GasLimit": 9,
@@ -1762,8 +1790,8 @@ Response:
 {
   "Message": {
     "Version": 42,
-    "To": "t01234",
-    "From": "t01234",
+    "To": "f01234",
+    "From": "f01234",
     "Nonce": 42,
     "Value": "0",
     "GasLimit": 9,
@@ -1776,6 +1804,43 @@ Response:
     "Type": 2,
     "Data": "Ynl0ZSBhcnJheQ=="
   }
+}
+```
+
+### MpoolPushUntrusted
+MpoolPushUntrusted pushes a signed message to mempool from untrusted sources.
+
+
+Perms: write
+
+Inputs:
+```json
+[
+  {
+    "Message": {
+      "Version": 42,
+      "To": "f01234",
+      "From": "f01234",
+      "Nonce": 42,
+      "Value": "0",
+      "GasLimit": 9,
+      "GasFeeCap": "0",
+      "GasPremium": "0",
+      "Method": 1,
+      "Params": "Ynl0ZSBhcnJheQ=="
+    },
+    "Signature": {
+      "Type": 2,
+      "Data": "Ynl0ZSBhcnJheQ=="
+    }
+  }
+]
+```
+
+Response:
+```json
+{
+  "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
 }
 ```
 
@@ -1838,8 +1903,8 @@ Response:
   "Message": {
     "Message": {
       "Version": 42,
-      "To": "t01234",
-      "From": "t01234",
+      "To": "f01234",
+      "From": "f01234",
       "Nonce": 42,
       "Value": "0",
       "GasLimit": 9,
@@ -1872,11 +1937,11 @@ Perms: sign
 Inputs:
 ```json
 [
-  "t01234",
-  "t01234",
+  "f01234",
+  "f01234",
   42,
-  "t01234",
-  "t01234",
+  "f01234",
+  "f01234",
   true
 ]
 ```
@@ -1899,10 +1964,10 @@ Perms: sign
 Inputs:
 ```json
 [
-  "t01234",
-  "t01234",
+  "f01234",
+  "f01234",
   42,
-  "t01234",
+  "f01234",
   true
 ]
 ```
@@ -1925,9 +1990,9 @@ Perms: sign
 Inputs:
 ```json
 [
-  "t01234",
-  "t01234",
-  "t01234",
+  "f01234",
+  "f01234",
+  "f01234",
   true
 ]
 ```
@@ -1950,12 +2015,12 @@ Perms: sign
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   42,
-  "t01234",
-  "t01234",
+  "f01234",
+  "f01234",
   "0",
-  "t01234",
+  "f01234",
   42,
   "Ynl0ZSBhcnJheQ=="
 ]
@@ -1979,11 +2044,11 @@ Perms: sign
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   42,
-  "t01234",
+  "f01234",
   "0",
-  "t01234",
+  "f01234",
   42,
   "Ynl0ZSBhcnJheQ=="
 ]
@@ -2011,7 +2076,7 @@ Inputs:
   null,
   10101,
   "0",
-  "t01234",
+  "f01234",
   "0"
 ]
 ```
@@ -2032,7 +2097,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   [
     {
       "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
@@ -2056,7 +2121,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   [
     {
       "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
@@ -2089,10 +2154,10 @@ Perms: sign
 Inputs:
 ```json
 [
-  "t01234",
-  "t01234",
+  "f01234",
+  "f01234",
   "0",
-  "t01234",
+  "f01234",
   42,
   "Ynl0ZSBhcnJheQ=="
 ]
@@ -2116,12 +2181,12 @@ Perms: sign
 Inputs:
 ```json
 [
-  "t01234",
-  "t01234",
+  "f01234",
+  "f01234",
   42,
-  "t01234",
-  "t01234",
-  "t01234"
+  "f01234",
+  "f01234",
+  "f01234"
 ]
 ```
 
@@ -2143,11 +2208,11 @@ Perms: sign
 Inputs:
 ```json
 [
-  "t01234",
-  "t01234",
+  "f01234",
+  "f01234",
   42,
-  "t01234",
-  "t01234"
+  "f01234",
+  "f01234"
 ]
 ```
 
@@ -2169,10 +2234,10 @@ Perms: sign
 Inputs:
 ```json
 [
-  "t01234",
-  "t01234",
-  "t01234",
-  "t01234"
+  "f01234",
+  "f01234",
+  "f01234",
+  "f01234"
 ]
 ```
 
@@ -2380,7 +2445,7 @@ Perms: sign
 Inputs:
 ```json
 [
-  "t01234"
+  "f01234"
 ]
 ```
 
@@ -2394,7 +2459,7 @@ Perms: sign
 Inputs:
 ```json
 [
-  "t01234"
+  "f01234"
 ]
 ```
 
@@ -2402,8 +2467,8 @@ Response:
 ```json
 {
   "Channel": "\u003cempty\u003e",
-  "From": "t01234",
-  "To": "t01234",
+  "From": "f01234",
+  "To": "f01234",
   "ConfirmedAmt": "0",
   "PendingAmt": "0",
   "PendingWaitSentinel": null,
@@ -2420,8 +2485,8 @@ Perms: sign
 Inputs:
 ```json
 [
-  "t01234",
-  "t01234"
+  "f01234",
+  "f01234"
 ]
 ```
 
@@ -2429,8 +2494,8 @@ Response:
 ```json
 {
   "Channel": "\u003cempty\u003e",
-  "From": "t01234",
-  "To": "t01234",
+  "From": "f01234",
+  "To": "f01234",
   "ConfirmedAmt": "0",
   "PendingAmt": "0",
   "PendingWaitSentinel": null,
@@ -2447,7 +2512,7 @@ Perms: sign
 Inputs:
 ```json
 [
-  "t01234"
+  "f01234"
 ]
 ```
 
@@ -2466,8 +2531,8 @@ Perms: sign
 Inputs:
 ```json
 [
-  "t01234",
-  "t01234",
+  "f01234",
+  "f01234",
   "0"
 ]
 ```
@@ -2475,7 +2540,7 @@ Inputs:
 Response:
 ```json
 {
-  "Channel": "t01234",
+  "Channel": "f01234",
   "WaitSentinel": {
     "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
   }
@@ -2496,7 +2561,7 @@ Inputs:
 ]
 ```
 
-Response: `"t01234"`
+Response: `"f01234"`
 
 ### PaychList
 There are not yet any comments for this method.
@@ -2515,8 +2580,8 @@ Perms: sign
 Inputs:
 ```json
 [
-  "t01234",
-  "t01234",
+  "f01234",
+  "f01234",
   null
 ]
 ```
@@ -2524,7 +2589,7 @@ Inputs:
 Response:
 ```json
 {
-  "Channel": "t01234",
+  "Channel": "f01234",
   "WaitSentinel": {
     "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
   },
@@ -2540,7 +2605,7 @@ Perms: sign
 Inputs:
 ```json
 [
-  "t01234"
+  "f01234"
 ]
 ```
 
@@ -2559,14 +2624,14 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234"
+  "f01234"
 ]
 ```
 
 Response:
 ```json
 {
-  "ControlAddr": "t01234",
+  "ControlAddr": "f01234",
   "Direction": 1
 }
 ```
@@ -2579,14 +2644,14 @@ Perms: write
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   {
-    "ChannelAddr": "t01234",
+    "ChannelAddr": "f01234",
     "TimeLockMin": 10101,
     "TimeLockMax": 10101,
     "SecretPreimage": "Ynl0ZSBhcnJheQ==",
     "Extra": {
-      "Actor": "t01234",
+      "Actor": "f01234",
       "Method": 1,
       "Data": "Ynl0ZSBhcnJheQ=="
     },
@@ -2615,14 +2680,14 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   {
-    "ChannelAddr": "t01234",
+    "ChannelAddr": "f01234",
     "TimeLockMin": 10101,
     "TimeLockMax": 10101,
     "SecretPreimage": "Ynl0ZSBhcnJheQ==",
     "Extra": {
-      "Actor": "t01234",
+      "Actor": "f01234",
       "Method": 1,
       "Data": "Ynl0ZSBhcnJheQ=="
     },
@@ -2651,14 +2716,14 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   {
-    "ChannelAddr": "t01234",
+    "ChannelAddr": "f01234",
     "TimeLockMin": 10101,
     "TimeLockMax": 10101,
     "SecretPreimage": "Ynl0ZSBhcnJheQ==",
     "Extra": {
-      "Actor": "t01234",
+      "Actor": "f01234",
       "Method": 1,
       "Data": "Ynl0ZSBhcnJheQ=="
     },
@@ -2685,7 +2750,7 @@ Perms: sign
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   "0",
   42
 ]
@@ -2695,12 +2760,12 @@ Response:
 ```json
 {
   "Voucher": {
-    "ChannelAddr": "t01234",
+    "ChannelAddr": "f01234",
     "TimeLockMin": 10101,
     "TimeLockMax": 10101,
     "SecretPreimage": "Ynl0ZSBhcnJheQ==",
     "Extra": {
-      "Actor": "t01234",
+      "Actor": "f01234",
       "Method": 1,
       "Data": "Ynl0ZSBhcnJheQ=="
     },
@@ -2726,7 +2791,7 @@ Perms: write
 Inputs:
 ```json
 [
-  "t01234"
+  "f01234"
 ]
 ```
 
@@ -2740,14 +2805,14 @@ Perms: sign
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   {
-    "ChannelAddr": "t01234",
+    "ChannelAddr": "f01234",
     "TimeLockMin": 10101,
     "TimeLockMax": 10101,
     "SecretPreimage": "Ynl0ZSBhcnJheQ==",
     "Extra": {
-      "Actor": "t01234",
+      "Actor": "f01234",
       "Method": 1,
       "Data": "Ynl0ZSBhcnJheQ=="
     },
@@ -2788,7 +2853,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   [
     {
       "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
@@ -2800,7 +2865,7 @@ Inputs:
 ]
 ```
 
-Response: `"t01234"`
+Response: `"f01234"`
 
 ### StateAllMinerFaults
 StateAllMinerFaults returns all non-expired Faults that occur within lookback epochs of the given tipset
@@ -2836,8 +2901,8 @@ Inputs:
 [
   {
     "Version": 42,
-    "To": "t01234",
-    "From": "t01234",
+    "To": "f01234",
+    "From": "f01234",
     "Nonce": 42,
     "Value": "0",
     "GasLimit": 9,
@@ -2862,8 +2927,8 @@ Response:
 {
   "Msg": {
     "Version": 42,
-    "To": "t01234",
-    "From": "t01234",
+    "To": "f01234",
+    "From": "f01234",
     "Nonce": 42,
     "Value": "0",
     "GasLimit": 9,
@@ -2880,8 +2945,8 @@ Response:
   "ExecutionTrace": {
     "Msg": {
       "Version": 42,
-      "To": "t01234",
-      "From": "t01234",
+      "To": "f01234",
+      "From": "f01234",
       "Nonce": 42,
       "Value": "0",
       "GasLimit": 9,
@@ -3044,7 +3109,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   [
     {
       "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
@@ -3135,8 +3200,8 @@ Inputs:
 [
   {
     "Version": 42,
-    "To": "t01234",
-    "From": "t01234",
+    "To": "f01234",
+    "From": "f01234",
     "Nonce": 42,
     "Value": "0",
     "GasLimit": 9,
@@ -3190,7 +3255,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   [
     {
       "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
@@ -3202,7 +3267,7 @@ Inputs:
 ]
 ```
 
-Response: `"t01234"`
+Response: `"f01234"`
 
 ### StateMarketBalance
 StateMarketBalance looks up the Escrow and Locked balances of the given address in the Storage Market
@@ -3213,7 +3278,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   [
     {
       "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
@@ -3263,8 +3328,8 @@ Response:
       },
       "PieceSize": 1032,
       "VerifiedDeal": true,
-      "Client": "t01234",
-      "Provider": "t01234",
+      "Client": "f01234",
+      "Provider": "f01234",
       "Label": "string value",
       "StartEpoch": 10101,
       "EndEpoch": 10101,
@@ -3341,8 +3406,8 @@ Response:
     },
     "PieceSize": 1032,
     "VerifiedDeal": true,
-    "Client": "t01234",
-    "Provider": "t01234",
+    "Client": "f01234",
+    "Provider": "f01234",
     "Label": "string value",
     "StartEpoch": 10101,
     "EndEpoch": 10101,
@@ -3367,7 +3432,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   [
     {
       "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
@@ -3390,7 +3455,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   [
     {
       "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
@@ -3413,7 +3478,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   [
     {
       "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
@@ -3436,7 +3501,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   [
     {
       "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
@@ -3465,7 +3530,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   [
     {
       "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
@@ -3480,16 +3545,17 @@ Inputs:
 Response:
 ```json
 {
-  "Owner": "t01234",
-  "Worker": "t01234",
-  "NewWorker": "t01234",
+  "Owner": "f01234",
+  "Worker": "f01234",
+  "NewWorker": "f01234",
   "ControlAddresses": null,
   "WorkerChangeEpoch": 10101,
   "PeerId": "12D3KooWGzxzKZYveHXtpG6AsrUJBcWxHBFS2HsEoGTxrMLvKXtf",
   "Multiaddrs": null,
   "SealProofType": 3,
   "SectorSize": 34359738368,
-  "WindowPoStPartitionSectors": 42
+  "WindowPoStPartitionSectors": 42,
+  "ConsensusFaultElapsed": 10101
 }
 ```
 
@@ -3502,7 +3568,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   {
     "SealProof": 3,
     "SectorNumber": 9,
@@ -3539,7 +3605,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   42,
   [
     {
@@ -3563,7 +3629,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   [
     {
       "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
@@ -3599,7 +3665,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   {
     "SealProof": 3,
     "SectorNumber": 9,
@@ -3637,7 +3703,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   [
     {
       "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
@@ -3676,7 +3742,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   [
     {
       "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
@@ -3705,7 +3771,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   [
     {
       "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
@@ -3735,7 +3801,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   [
     0
   ],
@@ -3821,7 +3887,7 @@ Inputs:
 ]
 ```
 
-Response: `3`
+Response: `4`
 
 ### StateReadState
 StateReadState returns the indicated actor's state.
@@ -3832,7 +3898,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   [
     {
       "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
@@ -3880,8 +3946,8 @@ Response:
 {
   "Msg": {
     "Version": 42,
-    "To": "t01234",
-    "From": "t01234",
+    "To": "f01234",
+    "From": "f01234",
     "Nonce": 42,
     "Value": "0",
     "GasLimit": 9,
@@ -3898,8 +3964,8 @@ Response:
   "ExecutionTrace": {
     "Msg": {
       "Version": 42,
-      "To": "t01234",
-      "From": "t01234",
+      "To": "f01234",
+      "From": "f01234",
       "Nonce": 42,
       "Value": "0",
       "GasLimit": 9,
@@ -3971,7 +4037,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   9,
   [
     {
@@ -4003,7 +4069,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   9,
   [
     {
@@ -4044,7 +4110,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   9,
   [
     {
@@ -4074,7 +4140,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   9,
   [
     {
@@ -4122,7 +4188,54 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
+  [
+    {
+      "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
+    },
+    {
+      "/": "bafy2bzacebp3shtrn43k7g3unredz7fxn4gj533d3o43tqn2p2ipxxhrvchve"
+    }
+  ]
+]
+```
+
+Response: `"0"`
+
+### StateVerifiedRegistryRootKey
+StateVerifiedClientStatus returns the address of the Verified Registry's root key
+
+
+Perms: read
+
+Inputs:
+```json
+[
+  [
+    {
+      "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
+    },
+    {
+      "/": "bafy2bzacebp3shtrn43k7g3unredz7fxn4gj533d3o43tqn2p2ipxxhrvchve"
+    }
+  ]
+]
+```
+
+Response: `"f01234"`
+
+### StateVerifierStatus
+StateVerifierStatus returns the data cap for the given address.
+Returns nil if there is no entry in the data cap table for the
+address.
+
+
+Perms: read
+
+Inputs:
+```json
+[
+  "f01234",
   [
     {
       "/": "bafy2bzacea3wsdh6y3a36tb3skempjoxqpuyompjbmfeyf34fi3uy6uue42v4"
@@ -4234,7 +4347,7 @@ Inputs: `null`
 Response:
 ```json
 {
-  "Miner": "t01234",
+  "Miner": "f01234",
   "Ticket": {
     "VRFProof": "Ynl0ZSBhcnJheQ=="
   },
@@ -4316,7 +4429,7 @@ Inputs:
 [
   {
     "Header": {
-      "Miner": "t01234",
+      "Miner": "f01234",
       "Ticket": {
         "VRFProof": "Ynl0ZSBhcnJheQ=="
       },
@@ -4409,7 +4522,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234"
+  "f01234"
 ]
 ```
 
@@ -4423,7 +4536,7 @@ Perms: write
 
 Inputs: `null`
 
-Response: `"t01234"`
+Response: `"f01234"`
 
 ### WalletDelete
 WalletDelete deletes an address from the wallet.
@@ -4434,7 +4547,7 @@ Perms: write
 Inputs:
 ```json
 [
-  "t01234"
+  "f01234"
 ]
 ```
 
@@ -4449,7 +4562,7 @@ Perms: admin
 Inputs:
 ```json
 [
-  "t01234"
+  "f01234"
 ]
 ```
 
@@ -4470,7 +4583,7 @@ Perms: write
 Inputs:
 ```json
 [
-  "t01234"
+  "f01234"
 ]
 ```
 
@@ -4492,7 +4605,7 @@ Inputs:
 ]
 ```
 
-Response: `"t01234"`
+Response: `"f01234"`
 
 ### WalletList
 WalletList lists all the addresses in the wallet.
@@ -4517,7 +4630,7 @@ Inputs:
 ]
 ```
 
-Response: `"t01234"`
+Response: `"f01234"`
 
 ### WalletSetDefault
 WalletSetDefault marks the given address as as the default one.
@@ -4528,7 +4641,7 @@ Perms: admin
 Inputs:
 ```json
 [
-  "t01234"
+  "f01234"
 ]
 ```
 
@@ -4543,7 +4656,7 @@ Perms: sign
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   "Ynl0ZSBhcnJheQ=="
 ]
 ```
@@ -4565,11 +4678,11 @@ Perms: sign
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   {
     "Version": 42,
-    "To": "t01234",
-    "From": "t01234",
+    "To": "f01234",
+    "From": "f01234",
     "Nonce": 42,
     "Value": "0",
     "GasLimit": 9,
@@ -4586,8 +4699,8 @@ Response:
 {
   "Message": {
     "Version": 42,
-    "To": "t01234",
-    "From": "t01234",
+    "To": "f01234",
+    "From": "f01234",
     "Nonce": 42,
     "Value": "0",
     "GasLimit": 9,
@@ -4616,7 +4729,7 @@ Inputs:
 ]
 ```
 
-Response: `"t01234"`
+Response: `"f01234"`
 
 ### WalletVerify
 WalletVerify takes an address, a signature, and some bytes, and indicates whether the signature is valid.
@@ -4628,7 +4741,7 @@ Perms: read
 Inputs:
 ```json
 [
-  "t01234",
+  "f01234",
   "Ynl0ZSBhcnJheQ==",
   {
     "Type": 2,
