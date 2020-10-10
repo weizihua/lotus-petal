@@ -3,6 +3,7 @@ package sectorstorage
 import (
 	"context"
 	"fmt"
+	"github.com/filecoin-project/lotus/extern/sector-storage/stores"
 	"sync"
 	"time"
 
@@ -72,6 +73,8 @@ type scheduler struct {
 	closing  chan struct{}
 	closed   chan struct{}
 	testSync chan struct{} // used for testing
+
+	matches map[stores.ID][]*workerHandle
 }
 
 type workerHandle struct {
@@ -159,6 +162,8 @@ func newScheduler(spt abi.RegisteredSealProof) *scheduler {
 
 		closing: make(chan struct{}),
 		closed:  make(chan struct{}),
+
+		matches: make(map[stores.ID][]*workerHandle),
 	}
 }
 
@@ -223,7 +228,7 @@ func (sh *scheduler) runSched() {
 	iw := time.After(InitWait)
 	var initialised bool
 
-	timer := time.NewTimer(5 * time.Minute)
+	timer := time.NewTimer(1 * time.Minute)
 
 	for {
 		var doSched bool
@@ -278,7 +283,7 @@ func (sh *scheduler) runSched() {
 			}
 
 			sh.trySched()
-			timer.Reset(5 * time.Minute)
+			timer.Reset(1 * time.Minute)
 		}
 
 	}
@@ -878,6 +883,20 @@ func (sh *scheduler) newWorker(w *workerHandle) {
 	sh.workersLk.Unlock()
 
 	sh.runWorker(id)
+
+	storages, _ := w.w.Paths(context.Background())
+	for _, sto := range storages {
+		if !sto.CanSeal {
+			log.Warn("worker %d storage id %s can't do seal, ignore", id, sto.ID)
+			continue
+		}
+
+		//if _, exits := sh.matches[sto.ID]; !exits {
+		//	sh.matches[sto.ID] = make([]*workerHandle, 0)
+		//}
+
+		sh.matches[sto.ID] = append(sh.matches[sto.ID], w)
+	}
 
 	select {
 	case sh.watchClosing <- id:

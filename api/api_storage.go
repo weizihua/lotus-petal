@@ -107,6 +107,7 @@ type StorageMiner interface {
 	SchedWorkerTodos(ctx context.Context) map[sectorstorage.WorkerID][]sectorstorage.Todo
 	SchedWorkerLoad(ctx context.Context) map[sectorstorage.WorkerID]sectorstorage.LoadInfo
 	SchedWorkerTaskTypes(ctx context.Context) map[sectorstorage.WorkerID][]string
+	SchedListMatches(ctx context.Context) map[stores.ID][]string
 
 	// CreateBackup creates node backup onder the specified file name. The
 	// method requires that the lotus-miner is running with the

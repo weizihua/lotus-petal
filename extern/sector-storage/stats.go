@@ -2,6 +2,7 @@ package sectorstorage
 
 import (
 	"context"
+	"github.com/filecoin-project/lotus/extern/sector-storage/stores"
 	"time"
 
 	"github.com/filecoin-project/go-state-types/abi"
@@ -163,6 +164,20 @@ func (m *Manager) WorkerTaskTypes() map[WorkerID][]string {
 		}
 
 		out[wid] = types
+	}
+
+	return out
+}
+
+func (m *Manager) ListMatches() map[stores.ID][]string {
+	var out = make(map[stores.ID][]string)
+	for id, matches := range m.sched.matches {
+		var matchHosts = make([]string, len(matches))
+		for i, handle := range matches {
+			matchHosts[i] = handle.info.Hostname
+		}
+
+		out[id] = matchHosts
 	}
 
 	return out

@@ -55,6 +55,8 @@ var sealingCmd = &cli.Command{
 		sealingWorkerLoad,
 		sealingQueueCmd,
 		sealingWorkerTodosCmd,
+		sealingListIndexSectorsCmd,
+		sealingListMatchesCmd,
 	},
 }
 
@@ -396,5 +398,48 @@ var sealingWorkerTodosCmd = &cli.Command{
 		}
 
 		return nil
+	},
+}
+
+var sealingListIndexSectorsCmd = &cli.Command{
+	Name: "list-index-sectors",
+	Usage: "Print sectors in index",
+	Action: func(cctx *cli.Context) error {
+		api, closer, err := lcli.GetStorageMinerAPI(cctx)
+		if err != nil {
+			return err
+		}
+		defer closer()
+
+		index := api.ListIndexSectors(lcli.ReqContext(cctx))
+
+		tw := tabwriter.NewWriter(os.Stdout, 2, 4, 2, ' ', 0)
+		_, _ = fmt.Fprintf(tw, "Sector\tFileType\tStorageIDs\n")
+		for _, info := range index {
+			_, _ = fmt.Fprintf(tw, "%v\t%s\t%v\n", info.SectorID.Number, info.FileType.String(), info.StorageIDs)
+		}
+
+		return tw.Flush()
+	},
+}
+
+var sealingListMatchesCmd = &cli.Command{
+	Name: "list-matches",
+	Usage: "Print matches storage",
+	Action: func(cctx *cli.Context) error {
+		api, closer, err := lcli.GetStorageMinerAPI(cctx)
+		if err != nil {
+			return err
+		}
+		defer closer()
+
+		matches := api.SchedListMatches(lcli.ReqContext(cctx))
+		tw := tabwriter.NewWriter(os.Stdout, 2, 4,2,' ', 0)
+		_, _ = fmt.Fprintf(tw, "UUID\tMatchHosts\n")
+		for id, hosts := range matches {
+			_, _ = fmt.Fprintf(tw, "%s\t%v\n", id, hosts)
+		}
+
+		return tw.Flush()
 	},
 }

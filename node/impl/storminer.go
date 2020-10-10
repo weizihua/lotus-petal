@@ -552,6 +552,10 @@ func (sm *StorageMinerAPI) SchedWorkerTaskTypes(ctx context.Context) map[sectors
 	return sm.StorageMgr.WorkerTaskTypes()
 }
 
+func (sm *StorageMinerAPI) SchedListMatches(ctx context.Context) map[stores.ID][]string {
+	return sm.StorageMgr.ListMatches()
+}
+
 func (sm *StorageMinerAPI) CreateBackup(ctx context.Context, fpath string) error {
 	return backup(sm.DS, fpath)
 }

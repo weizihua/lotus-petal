@@ -62,6 +62,9 @@ type SectorIndex interface { // part of storage-miner api
 	// atomically acquire locks on all sector file types. close ctx to unlock
 	StorageLock(ctx context.Context, sector abi.SectorID, read SectorFileType, write SectorFileType) error
 	StorageTryLock(ctx context.Context, sector abi.SectorID, read SectorFileType, write SectorFileType) (bool, error)
+
+	FindSector(ctx context.Context, id abi.SectorID, typ SectorFileType) ([]ID, error)
+	ListIndexSectors(ctx context.Context) []DeclInfo
 }
 
 type Decl struct {
@@ -69,9 +72,15 @@ type Decl struct {
 	SectorFileType
 }
 
-type declMeta struct {
+type DeclMeta struct {
 	storage ID
 	primary bool
+}
+
+type DeclInfo struct {
+	SectorID   abi.SectorID
+	FileType   SectorFileType
+	StorageIDs map[ID]bool
 }
 
 type storageEntry struct {
@@ -86,7 +95,7 @@ type Index struct {
 	*indexLocks
 	lk sync.RWMutex
 
-	sectors map[Decl][]*declMeta
+	sectors map[Decl][]*DeclMeta
 	stores  map[ID]*storageEntry
 }
 
@@ -95,7 +104,7 @@ func NewIndex() *Index {
 		indexLocks: &indexLocks{
 			locks: map[abi.SectorID]*sectorLock{},
 		},
-		sectors: map[Decl][]*declMeta{},
+		sectors: map[Decl][]*DeclMeta{},
 		stores:  map[ID]*storageEntry{},
 	}
 }
@@ -203,7 +212,7 @@ loop:
 			}
 		}
 
-		i.sectors[d] = append(i.sectors[d], &declMeta{
+		i.sectors[d] = append(i.sectors[d], &DeclMeta{
 			storage: storageID,
 			primary: primary,
 		})
@@ -227,7 +236,7 @@ func (i *Index) StorageDropSector(ctx context.Context, storageID ID, s abi.Secto
 			return nil
 		}
 
-		rewritten := make([]*declMeta, 0, len(i.sectors[d])-1)
+		rewritten := make([]*DeclMeta, 0, len(i.sectors[d])-1)
 		for _, sid := range i.sectors[d] {
 			if sid.storage == storageID {
 				continue
@@ -421,7 +430,7 @@ func (i *Index) StorageBestAlloc(ctx context.Context, allocate SectorFileType, s
 	return out, nil
 }
 
-func (i *Index) FindSector(id abi.SectorID, typ SectorFileType) ([]ID, error) {
+func (i *Index) FindSector(ctx context.Context, id abi.SectorID, typ SectorFileType) ([]ID, error) {
 	i.lk.RLock()
 	defer i.lk.RUnlock()
 
@@ -438,6 +447,27 @@ func (i *Index) FindSector(id abi.SectorID, typ SectorFileType) ([]ID, error) {
 	}
 
 	return out, nil
+}
+
+func (i *Index) ListIndexSectors(ctx context.Context) []DeclInfo {
+	var out = make([]DeclInfo, len(i.sectors))
+
+	idx := 0
+	for decl, meta := range i.sectors {
+		var ids = make(map[ID]bool, len(meta))
+		for _, m := range meta {
+			ids[m.storage] = m.primary
+		}
+
+		out[idx] = DeclInfo{
+			SectorID:   decl.SectorID,
+			FileType:   decl.SectorFileType,
+			StorageIDs: ids,
+		}
+		idx++
+	}
+
+	return out
 }
 
 var _ SectorIndex = &Index{}

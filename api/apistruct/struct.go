@@ -331,8 +331,12 @@ type StorageMinerStruct struct {
 		SchedWorkerTodos     func(ctx context.Context) map[sectorstorage.WorkerID][]sectorstorage.Todo   `perm:"admin"`
 		SchedWorkerLoad      func(ctx context.Context) map[sectorstorage.WorkerID]sectorstorage.LoadInfo `perm:"admin"`
 		SchedWorkerTaskTypes func(ctx context.Context) map[sectorstorage.WorkerID][]string               `perm:"admin"`
+		SchedListMatches     func(ctx context.Context) map[stores.ID][]string                            `perm:"admin"`
 
 		CreateBackup func(ctx context.Context, fpath string) error `perm:"admin"`
+
+		FindSector       func(ctx context.Context, id abi.SectorID, typ stores.SectorFileType) ([]stores.ID, error) `perm:"admin"`
+		ListIndexSectors func(ctx context.Context) []stores.DeclInfo                                                `perm:"admin"`
 	}
 }
 
@@ -1314,8 +1318,20 @@ func (c *StorageMinerStruct) SchedWorkerTaskTypes(ctx context.Context) map[secto
 	return c.Internal.SchedWorkerTaskTypes(ctx)
 }
 
+func (c *StorageMinerStruct) SchedListMatches(ctx context.Context) map[stores.ID][]string {
+	return c.Internal.SchedListMatches(ctx)
+}
+
 func (c *StorageMinerStruct) CreateBackup(ctx context.Context, fpath string) error {
 	return c.Internal.CreateBackup(ctx, fpath)
+}
+
+func (c *StorageMinerStruct) FindSector(ctx context.Context, id abi.SectorID, typ stores.SectorFileType) ([]stores.ID, error) {
+	return c.Internal.FindSector(ctx, id, typ)
+}
+
+func (c *StorageMinerStruct) ListIndexSectors(ctx context.Context) []stores.DeclInfo {
+	return c.Internal.ListIndexSectors(ctx)
 }
 
 // WorkerStruct
