@@ -711,13 +711,19 @@ var mpoolSetPriorityAddrsCmd = &cli.Command{
 				return err
 			}
 
+			for _, a := range config.PriorityAddrs {
+				if addr == a {
+					return xerrors.Errorf("address %s already in PriorityAddrs", addr)
+				}
+			}
+
 			config.PriorityAddrs = append(config.PriorityAddrs, addr)
 
 			if err := api.MpoolSetConfig(ctx, config); err != nil {
 				return err
 			}
 
-			fmt.Printf("Successfully add %s to PriorityAddrs", addr)
+			fmt.Printf("Successfully add %s to PriorityAddrs\n", addr)
 		}
 
 		rmAddr := cctx.String("del")
@@ -744,7 +750,7 @@ var mpoolSetPriorityAddrsCmd = &cli.Command{
 			return err
 		}
 
-		fmt.Printf("Successfully delete %s from PriorityAddrs", rmAddr)
+		fmt.Printf("Successfully delete %s from PriorityAddrs\n", rmAddr)
 
 		return nil
 	},
