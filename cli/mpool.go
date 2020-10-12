@@ -33,6 +33,7 @@ var mpoolCmd = &cli.Command{
 		mpoolFindCmd,
 		mpoolConfig,
 		mpoolGasPerfCmd,
+		mpoolSetPriorityAddrsCmd,
 	},
 }
 
@@ -669,6 +670,81 @@ var mpoolGasPerfCmd = &cli.Command{
 
 			fmt.Printf("%s\t%d\t%s\t%f\n", m.Message.From, m.Message.Nonce, gasReward, gasPerf)
 		}
+
+		return nil
+	},
+}
+
+var mpoolSetPriorityAddrsCmd = &cli.Command{
+	Name: "priority-addrs",
+	Usage: "Manage PriorityAddrs",
+	Flags: []cli.Flag{
+		&cli.StringFlag{
+			Name: "add",
+			Aliases: []string{"a"},
+			Usage: "add a priority address",
+		},
+		&cli.StringFlag{
+			Name: "del",
+			Aliases: []string{"d"},
+			Usage: "delete a priority address",
+		},
+	},
+	Action: func(cctx *cli.Context) error {
+		api, closer, err := GetFullNodeAPI(cctx)
+		if err != nil {
+			return err
+		}
+		defer closer()
+
+		ctx := ReqContext(cctx)
+
+		config, err := api.MpoolGetConfig(ctx)
+		if err != nil {
+			return err
+		}
+
+		newAddr := cctx.String("add")
+		if len(newAddr) > 0 {
+			addr, err := address.NewFromString(newAddr)
+			if err != nil {
+				return err
+			}
+
+			config.PriorityAddrs = append(config.PriorityAddrs, addr)
+
+			if err := api.MpoolSetConfig(ctx, config); err != nil {
+				return err
+			}
+
+			fmt.Printf("Successfully add %s to PriorityAddrs", addr)
+		}
+
+		rmAddr := cctx.String("del")
+		if len(rmAddr) == 0 {
+			return nil
+		}
+
+		addr, err := address.NewFromString(rmAddr)
+		if err != nil {
+			return err
+		}
+
+		for i, a := range config.PriorityAddrs {
+			if addr == a {
+				if i != 0 {
+					config.PriorityAddrs[i] = config.PriorityAddrs[0]
+				}
+				config.PriorityAddrs = config.PriorityAddrs[1:]
+				break
+			}
+		}
+
+		if err := api.MpoolSetConfig(ctx, config); err != nil {
+			return err
+		}
+
+		fmt.Printf("Successfully delete %s from PriorityAddrs", rmAddr)
 
 		return nil
 	},
