@@ -15,7 +15,6 @@ import (
 	"github.com/urfave/cli/v2"
 	"golang.org/x/xerrors"
 
-	"github.com/filecoin-project/go-jsonrpc"
 	"github.com/filecoin-project/go-jsonrpc/auth"
 
 	"github.com/filecoin-project/lotus/api"
@@ -55,6 +54,7 @@ var runCmd = &cli.Command{
 			Name: "zt",
 			Usage: "enable zero transmission (only available on cephfs)",
 			Value: false,
+			Hidden: true,
 		},
 		&cli.StringFlag{
 			Name: "storage-path",

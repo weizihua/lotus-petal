@@ -371,10 +371,12 @@ func (sh *scheduler) trySched() {
 				continue
 			}
 			if !ok {
+				log.Debugf("worker %d: can't handle %d:%s", wid, task.sector.Number, task.taskType)
 				continue
 			}
 
 			if !schedWindow.allocated.canHandleRequest(needRes, wid, "schedAcceptable", sh.workers[wid].info.Resources) {
+				log.Debugf("worker %d: not enough resource to handle %d:%s", wid, task.sector.Number, task.taskType)
 				continue
 			}
 
