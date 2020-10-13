@@ -435,7 +435,7 @@ var sealingListMatchesCmd = &cli.Command{
 
 		matches := api.SchedListMatches(lcli.ReqContext(cctx))
 		tw := tabwriter.NewWriter(os.Stdout, 2, 4,2,' ', 0)
-		_, _ = fmt.Fprintf(tw, "UUID\tMatchHosts\n")
+		_, _ = fmt.Fprintf(tw, "MachineID\tHosts\n")
 		for id, hosts := range matches {
 			_, _ = fmt.Fprintf(tw, "%s\t%v\n", id, hosts)
 		}

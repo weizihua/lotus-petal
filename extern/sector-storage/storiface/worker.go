@@ -8,9 +8,9 @@ import (
 )
 
 type WorkerInfo struct {
-	Hostname string
-
+	Hostname  string
 	Resources WorkerResources
+	MachineID string
 }
 
 type WorkerResources struct {

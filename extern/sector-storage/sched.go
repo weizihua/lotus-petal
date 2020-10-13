@@ -3,7 +3,7 @@ package sectorstorage
 import (
 	"context"
 	"fmt"
-	"github.com/filecoin-project/lotus/extern/sector-storage/stores"
+	"os"
 	"sync"
 	"time"
 
@@ -74,7 +74,12 @@ type scheduler struct {
 	closed   chan struct{}
 	testSync chan struct{} // used for testing
 
-	matches map[stores.ID][]*workerHandle
+	matches map[string][]matchInfo
+}
+
+type matchInfo struct {
+	id     WorkerID
+	handle *workerHandle
 }
 
 type workerHandle struct {
@@ -163,7 +168,7 @@ func newScheduler(spt abi.RegisteredSealProof) *scheduler {
 		closing: make(chan struct{}),
 		closed:  make(chan struct{}),
 
-		matches: make(map[stores.ID][]*workerHandle),
+		matches: make(map[string][]matchInfo),
 	}
 }
 
@@ -676,7 +681,8 @@ func (sh *scheduler) runWorker(wid WorkerID) {
 		}
 
 		for {
-			for ; windowsRequested < SchedWindows; windowsRequested++ {}
+			for ; windowsRequested < SchedWindows; windowsRequested++ {
+			}
 
 			select {
 			case w := <-scheduledWindows:
@@ -886,18 +892,26 @@ func (sh *scheduler) newWorker(w *workerHandle) {
 
 	sh.runWorker(id)
 
-	storages, _ := w.w.Paths(context.Background())
-	for _, sto := range storages {
-		if !sto.CanSeal {
-			log.Warn("worker %d storage id %s can't do seal, ignore", id, sto.ID)
-			continue
+	var machineID string
+	if fakeID, exist := os.LookupEnv("LOTUS_FAKE_MACHINE_ID"); exist {
+		machineID = fakeID
+	} else {
+		info, _ := w.w.Info(context.Background())
+		machineID = info.MachineID
+	}
+
+	if _, exist := sh.matches[machineID]; !exist {
+		sh.matches[machineID] = []matchInfo{
+			{
+				id:     id,
+				handle: w,
+			},
 		}
-
-		//if _, exits := sh.matches[sto.ID]; !exits {
-		//	sh.matches[sto.ID] = make([]*workerHandle, 0)
-		//}
-
-		sh.matches[sto.ID] = append(sh.matches[sto.ID], w)
+	} else {
+		sh.matches[machineID] = append(sh.matches[machineID], matchInfo{
+			id:     id,
+			handle: w,
+		})
 	}
 
 	select {
@@ -943,6 +957,34 @@ func (sh *scheduler) workerCleanup(wid WorkerID, w *workerHandle) {
 			}
 		}
 		sh.openWindows = newWindows
+
+		var action = 0
+		var delID string
+
+		for macID, workerHandles :=  range sh.matches {
+			for i, info := range workerHandles {
+				if info.id == wid {
+					if len(sh.matches[macID]) == 1 {
+						action = 1
+						delID = macID
+					} else {
+						sh.matches[macID][i] = sh.matches[macID][0]
+						action = 2
+						delID = macID
+					}
+					break
+				}
+			}
+			if action != 0 { break }
+		}
+
+		switch action {
+		case 1:
+			delete(sh.matches, delID)
+		case 2:
+			sh.matches[delID] = sh.matches[delID][1:]
+		default:
+		}
 
 		log.Debugf("dropWorker %d", wid)
 

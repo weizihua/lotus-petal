@@ -3,8 +3,10 @@ package sectorstorage
 import (
 	"context"
 	"io"
+	"io/ioutil"
 	"os"
 	"runtime"
+	"strings"
 
 	"github.com/elastic/go-sysinfo"
 	"github.com/hashicorp/go-multierror"
@@ -292,6 +294,11 @@ func (l *LocalWorker) Info(context.Context) (storiface.WorkerInfo, error) {
 		memSwap = 0
 	}
 
+	macID, err := ioutil.ReadFile("/etc/machine-id")
+	if err != nil {
+		log.Errorf("getting machine id failed: %+v", err)
+	}
+
 	return storiface.WorkerInfo{
 		Hostname: hostname,
 		Resources: storiface.WorkerResources{
@@ -301,6 +308,7 @@ func (l *LocalWorker) Info(context.Context) (storiface.WorkerInfo, error) {
 			CPUs:        uint64(runtime.NumCPU()),
 			GPUs:        gpus,
 		},
+		MachineID: strings.ReplaceAll(string(macID), "\n", ""),
 	}, nil
 }
 

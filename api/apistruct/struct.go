@@ -333,7 +333,7 @@ type StorageMinerStruct struct {
 		SchedWorkerTodos     func(ctx context.Context) map[sectorstorage.WorkerID][]sectorstorage.Todo   `perm:"admin"`
 		SchedWorkerLoad      func(ctx context.Context) map[sectorstorage.WorkerID]sectorstorage.LoadInfo `perm:"admin"`
 		SchedWorkerTaskTypes func(ctx context.Context) map[sectorstorage.WorkerID][]string               `perm:"admin"`
-		SchedListMatches     func(ctx context.Context) map[stores.ID][]string                            `perm:"admin"`
+		SchedListMatches     func(ctx context.Context) map[string][]string                            `perm:"admin"`
 
 		CreateBackup func(ctx context.Context, fpath string) error `perm:"admin"`
 
@@ -1357,7 +1357,7 @@ func (c *StorageMinerStruct) SchedWorkerTaskTypes(ctx context.Context) map[secto
 	return c.Internal.SchedWorkerTaskTypes(ctx)
 }
 
-func (c *StorageMinerStruct) SchedListMatches(ctx context.Context) map[stores.ID][]string {
+func (c *StorageMinerStruct) SchedListMatches(ctx context.Context) map[string][]string {
 	return c.Internal.SchedListMatches(ctx)
 }
 

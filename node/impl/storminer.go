@@ -552,7 +552,7 @@ func (sm *StorageMinerAPI) SchedWorkerTaskTypes(ctx context.Context) map[sectors
 	return sm.StorageMgr.WorkerTaskTypes()
 }
 
-func (sm *StorageMinerAPI) SchedListMatches(ctx context.Context) map[stores.ID][]string {
+func (sm *StorageMinerAPI) SchedListMatches(ctx context.Context) map[string][]string {
 	return sm.StorageMgr.ListMatches()
 }
 
