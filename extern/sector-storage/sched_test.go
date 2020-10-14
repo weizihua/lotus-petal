@@ -114,6 +114,10 @@ func (s *schedTestWorker) MaxParallelSealingSector(ctx context.Context) uint64 {
 	return 0
 }
 
+func (s *schedTestWorker) FindSectorPreviousSealer(ctx context.Context, sid abi.SectorID) string {
+	panic("implement me")
+}
+
 
 var decentWorkerResources = storiface.WorkerResources{
 	MemPhysical: 128 << 30,

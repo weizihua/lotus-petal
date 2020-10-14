@@ -38,6 +38,7 @@ type WorkerAPI interface {
 
 	CanHandleMoreTask(ctx context.Context, running uint64, todos uint64) bool
 	MaxParallelSealingSector(ctx context.Context) uint64
+	FindSectorPreviousSealer(ctx context.Context, sid abi.SectorID) string
 
 	Closing(context.Context) (<-chan struct{}, error)
 }

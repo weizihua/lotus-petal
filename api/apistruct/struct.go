@@ -303,7 +303,7 @@ type StorageMinerStruct struct {
 		StorageLocal         func(context.Context) (map[stores.ID]string, error)                                                                                           `perm:"admin"`
 		StorageStat          func(context.Context, stores.ID) (fsutil.FsStat, error)                                                                                       `perm:"admin"`
 		StorageAttach        func(context.Context, stores.StorageInfo, fsutil.FsStat) error                                                                                `perm:"admin"`
-		StorageDeclareSector func(context.Context, stores.ID, abi.SectorID, stores.SectorFileType, bool) error                                                             `perm:"admin"`
+		StorageDeclareSector func(context.Context, stores.ID, abi.SectorID, stores.SectorFileType, bool, string) error                                                     `perm:"admin"`
 		StorageDropSector    func(context.Context, stores.ID, abi.SectorID, stores.SectorFileType) error                                                                   `perm:"admin"`
 		StorageFindSector    func(context.Context, abi.SectorID, stores.SectorFileType, abi.RegisteredSealProof, bool) ([]stores.SectorStorageInfo, error)                 `perm:"admin"`
 		StorageInfo          func(context.Context, stores.ID) (stores.StorageInfo, error)                                                                                  `perm:"admin"`
@@ -336,12 +336,13 @@ type StorageMinerStruct struct {
 		SchedWorkerTodos     func(ctx context.Context) map[sectorstorage.WorkerID][]sectorstorage.Todo   `perm:"admin"`
 		SchedWorkerLoad      func(ctx context.Context) map[sectorstorage.WorkerID]sectorstorage.LoadInfo `perm:"admin"`
 		SchedWorkerTaskTypes func(ctx context.Context) map[sectorstorage.WorkerID][]string               `perm:"admin"`
-		SchedListMatches     func(ctx context.Context) map[string][]string                            `perm:"admin"`
+		SchedListMatches     func(ctx context.Context) map[string][]string                               `perm:"admin"`
 
 		CreateBackup func(ctx context.Context, fpath string) error `perm:"admin"`
 
-		FindSector       func(ctx context.Context, id abi.SectorID, typ stores.SectorFileType) ([]stores.ID, error) `perm:"admin"`
-		ListIndexSectors func(ctx context.Context) []stores.DeclInfo                                                `perm:"admin"`
+		FindSector               func(ctx context.Context, id abi.SectorID, typ stores.SectorFileType) ([]stores.ID, error) `perm:"admin"`
+		FindSectorPreviousSealer func(ctx context.Context, sid abi.SectorID) string                                         `perm:"admin"`
+		ListIndexSectors         func(ctx context.Context) []stores.DeclInfo                                                `perm:"admin"`
 	}
 }
 
@@ -373,6 +374,7 @@ type WorkerStruct struct {
 
 		CanHandleMoreTask        func(ctx context.Context, running uint64, todos uint64) bool `perm:"admin"`
 		MaxParallelSealingSector func(ctx context.Context) uint64                             `perm:"admin"`
+		FindSectorPreviousSealer func(ctx context.Context, sid abi.SectorID) string           `perm:"admin"`
 
 		Closing func(context.Context) (<-chan struct{}, error) `perm:"admin"`
 	}
@@ -1200,8 +1202,8 @@ func (c *StorageMinerStruct) StorageAttach(ctx context.Context, si stores.Storag
 	return c.Internal.StorageAttach(ctx, si, st)
 }
 
-func (c *StorageMinerStruct) StorageDeclareSector(ctx context.Context, storageId stores.ID, s abi.SectorID, ft stores.SectorFileType, primary bool) error {
-	return c.Internal.StorageDeclareSector(ctx, storageId, s, ft, primary)
+func (c *StorageMinerStruct) StorageDeclareSector(ctx context.Context, storageId stores.ID, s abi.SectorID, ft stores.SectorFileType, primary bool, machineID string) error {
+	return c.Internal.StorageDeclareSector(ctx, storageId, s, ft, primary, machineID)
 }
 
 func (c *StorageMinerStruct) StorageDropSector(ctx context.Context, storageId stores.ID, s abi.SectorID, ft stores.SectorFileType) error {
@@ -1388,6 +1390,10 @@ func (c *StorageMinerStruct) ListIndexSectors(ctx context.Context) []stores.Decl
 	return c.Internal.ListIndexSectors(ctx)
 }
 
+func (c *StorageMinerStruct) FindSectorPreviousSealer(ctx context.Context, sid abi.SectorID) string {
+	return c.Internal.FindSectorPreviousSealer(ctx, sid)
+}
+
 // WorkerStruct
 
 func (w *WorkerStruct) Version(ctx context.Context) (build.Version, error) {
@@ -1464,6 +1470,10 @@ func (w *WorkerStruct) CanHandleMoreTask(ctx context.Context, running uint64, to
 
 func (w *WorkerStruct) MaxParallelSealingSector(ctx context.Context) uint64 {
 	return w.Internal.MaxParallelSealingSector(ctx)
+}
+
+func (w *WorkerStruct)FindSectorPreviousSealer(ctx context.Context, sid abi.SectorID) string {
+	return w.Internal.FindSectorPreviousSealer(ctx, sid)
 }
 
 func (w *WorkerStruct) Closing(ctx context.Context) (<-chan struct{}, error) {

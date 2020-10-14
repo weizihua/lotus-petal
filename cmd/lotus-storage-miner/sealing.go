@@ -144,6 +144,7 @@ var sealingWorkersCmd = &cli.Command{
 			}
 			fmt.Printf("\tTaskTypes: %v\n", workerTasks[sectorstorage.WorkerID(stat.id)])
 			fmt.Printf("\tMaxParallelSealingSector: %d\n", workerLoad[sectorstorage.WorkerID(stat.id)].MaxLoad)
+			fmt.Printf("\tMachineID: %s\n", stat.Info.MachineID)
 		}
 
 		return nil
@@ -414,9 +415,9 @@ var sealingListIndexSectorsCmd = &cli.Command{
 		index := api.ListIndexSectors(lcli.ReqContext(cctx))
 
 		tw := tabwriter.NewWriter(os.Stdout, 2, 4, 2, ' ', 0)
-		_, _ = fmt.Fprintf(tw, "Sector\tFileType\tStorageIDs\n")
+		_, _ = fmt.Fprintf(tw, "Sector\tStorages\tPreviousSealer\n")
 		for _, info := range index {
-			_, _ = fmt.Fprintf(tw, "%v\t%s\t%v\n", info.SectorID.Number, info.FileType.String(), info.StorageIDs)
+			_, _ = fmt.Fprintf(tw, "%v\t%v\t%s\n", info.SectorID.Number, info.Storages, info.PreviousSealer)
 		}
 
 		return tw.Flush()
@@ -436,6 +437,8 @@ var sealingListMatchesCmd = &cli.Command{
 		matches := api.SchedListMatches(lcli.ReqContext(cctx))
 		tw := tabwriter.NewWriter(os.Stdout, 2, 4,2,' ', 0)
 		_, _ = fmt.Fprintf(tw, "MachineID\tHosts\n")
+		_, _ = fmt.Fprintf(tw, "undefined\t%v\n", matches["undefined"])
+		delete(matches, "undefined")
 		for id, hosts := range matches {
 			_, _ = fmt.Fprintf(tw, "%s\t%v\n", id, hosts)
 		}

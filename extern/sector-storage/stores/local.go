@@ -222,7 +222,7 @@ func (st *Local) OpenPath(ctx context.Context, p string) error {
 				return xerrors.Errorf("parse sector id %s: %w", ent.Name(), err)
 			}
 
-			if err := st.index.StorageDeclareSector(ctx, meta.ID, sid, t, meta.CanStore); err != nil {
+			if err := st.index.StorageDeclareSector(ctx, meta.ID, sid, t, meta.CanStore, GetMachineID()); err != nil {
 				return xerrors.Errorf("declare sector %d(t:%d) -> %s: %w", sid, t, meta.ID, err)
 			}
 		}
@@ -587,7 +587,7 @@ func (st *Local) MoveStorage(ctx context.Context, s abi.SectorID, spt abi.Regist
 			return xerrors.Errorf("moving sector %v(%d): %w", s, fileType, err)
 		}
 
-		if err := st.index.StorageDeclareSector(ctx, ID(PathByType(destIds, fileType)), s, fileType, true); err != nil {
+		if err := st.index.StorageDeclareSector(ctx, ID(PathByType(destIds, fileType)), s, fileType, true, GetMachineID()); err != nil {
 			return xerrors.Errorf("declare sector %d(t:%d) -> %s: %w", s, fileType, ID(PathByType(destIds, fileType)), err)
 		}
 	}

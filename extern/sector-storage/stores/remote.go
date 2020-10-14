@@ -143,7 +143,7 @@ func (r *Remote) AcquireSector(ctx context.Context, s abi.SectorID, spt abi.Regi
 		SetPathByType(&paths, fileType, dest)
 		SetPathByType(&stores, fileType, storageID)
 
-		if err := r.index.StorageDeclareSector(ctx, ID(storageID), s, fileType, op == AcquireMove); err != nil {
+		if err := r.index.StorageDeclareSector(ctx, ID(storageID), s, fileType, op == AcquireMove, GetMachineID()); err != nil {
 			log.Warnf("declaring sector %v in %s failed: %+v", s, storageID, err)
 			continue
 		}

@@ -128,3 +128,17 @@ func copyDir(src string, dst string) error {
 	}
 	return nil
 }
+
+func GetMachineID() string {
+	if fakeid, exist := os.LookupEnv("LOTUS_FAKE_MACHINE_ID"); exist {
+		return fakeid
+	}
+
+	bid, err := ioutil.ReadFile("/etc/machine-id")
+	if err != nil {
+		log.Errorf("getting machine id failed: %+v", err)
+		return ""
+	}
+
+	return strings.ReplaceAll(string(bid), "\n", "")
+}

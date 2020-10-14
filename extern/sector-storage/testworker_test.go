@@ -132,4 +132,8 @@ func (t *testWorker) Close() error {
 	panic("implement me")
 }
 
+func (t *testWorker) FindSectorPreviousSealer(ctx context.Context, sid abi.SectorID) string {
+	panic("implement me")
+}
+
 var _ Worker = &testWorker{}

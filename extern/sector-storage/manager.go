@@ -40,6 +40,7 @@ type Worker interface {
 	TaskTypes(context.Context) (map[sealtasks.TaskType]struct{}, error)
 	CanHandleMoreTask(ctx context.Context, running uint64, todos uint64) bool
 	MaxParallelSealingSector(ctx context.Context) uint64
+	FindSectorPreviousSealer(ctx context.Context, sid abi.SectorID) string
 
 	// Returns paths accessible to the worker
 	Paths(context.Context) ([]stores.StoragePath, error)

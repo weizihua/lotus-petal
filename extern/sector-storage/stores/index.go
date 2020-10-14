@@ -53,7 +53,7 @@ type SectorIndex interface { // part of storage-miner api
 	StorageInfo(context.Context, ID) (StorageInfo, error)
 	StorageReportHealth(context.Context, ID, HealthReport) error
 
-	StorageDeclareSector(ctx context.Context, storageID ID, s abi.SectorID, ft SectorFileType, primary bool) error
+	StorageDeclareSector(ctx context.Context, storageID ID, s abi.SectorID, ft SectorFileType, primary bool, machineID string) error
 	StorageDropSector(ctx context.Context, storageID ID, s abi.SectorID, ft SectorFileType) error
 	StorageFindSector(ctx context.Context, sector abi.SectorID, ft SectorFileType, spt abi.RegisteredSealProof, allowFetch bool) ([]SectorStorageInfo, error)
 
@@ -64,6 +64,7 @@ type SectorIndex interface { // part of storage-miner api
 	StorageTryLock(ctx context.Context, sector abi.SectorID, read SectorFileType, write SectorFileType) (bool, error)
 
 	FindSector(ctx context.Context, id abi.SectorID, typ SectorFileType) ([]ID, error)
+	FindSectorPreviousSealer(ctx context.Context, sid abi.SectorID) string
 	ListIndexSectors(ctx context.Context) []DeclInfo
 }
 
@@ -78,9 +79,9 @@ type DeclMeta struct {
 }
 
 type DeclInfo struct {
-	SectorID   abi.SectorID
-	FileType   SectorFileType
-	StorageIDs map[ID]bool
+	SectorID       abi.SectorID
+	Storages       map[ID]string
+	PreviousSealer string
 }
 
 type storageEntry struct {
@@ -97,6 +98,8 @@ type Index struct {
 
 	sectors map[Decl][]*DeclMeta
 	stores  map[ID]*storageEntry
+
+	sectorsPreviousSealer map[abi.SectorID]string
 }
 
 func NewIndex() *Index {
@@ -106,6 +109,7 @@ func NewIndex() *Index {
 		},
 		sectors: map[Decl][]*DeclMeta{},
 		stores:  map[ID]*storageEntry{},
+		sectorsPreviousSealer: map[abi.SectorID]string{},
 	}
 }
 
@@ -189,9 +193,11 @@ func (i *Index) StorageReportHealth(ctx context.Context, id ID, report HealthRep
 	return nil
 }
 
-func (i *Index) StorageDeclareSector(ctx context.Context, storageID ID, s abi.SectorID, ft SectorFileType, primary bool) error {
+func (i *Index) StorageDeclareSector(ctx context.Context, storageID ID, s abi.SectorID, ft SectorFileType, primary bool, machineID string) error {
 	i.lk.Lock()
 	defer i.lk.Unlock()
+
+	i.sectorsPreviousSealer[s] = machineID
 
 loop:
 	for _, fileType := range PathTypes {
@@ -454,20 +460,24 @@ func (i *Index) ListIndexSectors(ctx context.Context) []DeclInfo {
 
 	idx := 0
 	for decl, meta := range i.sectors {
-		var ids = make(map[ID]bool, len(meta))
+		var storages = make(map[ID]string, len(meta))
 		for _, m := range meta {
-			ids[m.storage] = m.primary
+			storages[m.storage] = decl.SectorFileType.String()
 		}
 
 		out[idx] = DeclInfo{
-			SectorID:   decl.SectorID,
-			FileType:   decl.SectorFileType,
-			StorageIDs: ids,
+			SectorID: decl.SectorID,
+			Storages: storages,
+			PreviousSealer: i.sectorsPreviousSealer[decl.SectorID],
 		}
 		idx++
 	}
 
 	return out
+}
+
+func (i *Index) FindSectorPreviousSealer(ctx context.Context, sid abi.SectorID) string {
+	return i.sectorsPreviousSealer[sid]
 }
 
 var _ SectorIndex = &Index{}

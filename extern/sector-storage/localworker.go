@@ -2,16 +2,13 @@ package sectorstorage
 
 import (
 	"context"
-	"io"
-	"io/ioutil"
-	"os"
-	"runtime"
-	"strings"
-
 	"github.com/elastic/go-sysinfo"
 	"github.com/hashicorp/go-multierror"
 	"github.com/ipfs/go-cid"
 	"golang.org/x/xerrors"
+	"io"
+	"os"
+	"runtime"
 
 	ffi "github.com/filecoin-project/filecoin-ffi"
 	"github.com/filecoin-project/go-state-types/abi"
@@ -91,7 +88,7 @@ func (l *localWorkerPathProvider) AcquireSector(ctx context.Context, sector abi.
 
 			sid := stores.PathByType(storageIDs, fileType)
 
-			if err := l.w.sindex.StorageDeclareSector(ctx, stores.ID(sid), sector, fileType, l.op == stores.AcquireMove); err != nil {
+			if err := l.w.sindex.StorageDeclareSector(ctx, stores.ID(sid), sector, fileType, l.op == stores.AcquireMove, stores.GetMachineID()); err != nil {
 				log.Errorf("declare sector error: %+v", err)
 			}
 		}
@@ -294,11 +291,6 @@ func (l *LocalWorker) Info(context.Context) (storiface.WorkerInfo, error) {
 		memSwap = 0
 	}
 
-	macID, err := ioutil.ReadFile("/etc/machine-id")
-	if err != nil {
-		log.Errorf("getting machine id failed: %+v", err)
-	}
-
 	return storiface.WorkerInfo{
 		Hostname: hostname,
 		Resources: storiface.WorkerResources{
@@ -308,7 +300,7 @@ func (l *LocalWorker) Info(context.Context) (storiface.WorkerInfo, error) {
 			CPUs:        uint64(runtime.NumCPU()),
 			GPUs:        gpus,
 		},
-		MachineID: strings.ReplaceAll(string(macID), "\n", ""),
+		MachineID: stores.GetMachineID(),
 	}, nil
 }
 
@@ -334,6 +326,10 @@ func (l *LocalWorker) CanHandleMoreTask(ctx context.Context, running uint64, tod
 
 func (l *LocalWorker) MaxParallelSealingSector(ctx context.Context) uint64 {
 	return l.maxParallelSealingSector
+}
+
+func (l *LocalWorker) FindSectorPreviousSealer(ctx context.Context, sid abi.SectorID) string {
+	return l.sindex.FindSectorPreviousSealer(ctx, sid)
 }
 
 
