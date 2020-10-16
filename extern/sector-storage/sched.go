@@ -74,7 +74,8 @@ type scheduler struct {
 	closed   chan struct{}
 	testSync chan struct{} // used for testing
 
-	matches map[string][]matchInfo
+	matches    map[string][]matchInfo
+	forceMatch bool
 }
 
 type matchInfo struct {
@@ -146,7 +147,7 @@ type workerResponse struct {
 	err error
 }
 
-func newScheduler(spt abi.RegisteredSealProof) *scheduler {
+func newScheduler(spt abi.RegisteredSealProof, forceMatch bool) *scheduler {
 	return &scheduler{
 		spt: spt,
 
@@ -171,6 +172,8 @@ func newScheduler(spt abi.RegisteredSealProof) *scheduler {
 		matches: map[string][]matchInfo{
 			"undefined": {},
 		},
+
+		forceMatch: forceMatch,
 	}
 }
 
@@ -382,7 +385,7 @@ func (sh *scheduler) trySched() {
 			}
 		}
 
-		if _, set := os.LookupEnv("LOTUS_FORCE_MATCH_SCHEDULE"); !set || noMatchTask {
+		if sh.forceMatch || noMatchTask {
 			for wid, req := range schedWorkers {
 				if sh.doSched(task, req, wid) {
 					sh.schedQueue.Remove(i)
