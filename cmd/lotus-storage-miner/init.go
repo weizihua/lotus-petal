@@ -114,8 +114,8 @@ var initCmd = &cli.Command{
 			Usage: "select which address to send actor creation message from",
 		},
 		&cli.StringFlag{
-			Name: "storage-path",
-			Usage: "sectors storage path",
+			Name:    "storage-path",
+			Usage:   "sectors storage path",
 			EnvVars: []string{"LOTUS_SECTOR_STORAGE_PATH"},
 		},
 	},
@@ -468,8 +468,10 @@ func storageMinerInit(ctx context.Context, cctx *cli.Context, api lapi.FullNode,
 				AllowAddPiece:      true,
 				AllowPreCommit1:    true,
 				AllowPreCommit2:    true,
-				AllowCommit:        true,
+				AllowCommit1:       true,
+				AllowCommit2:       true,
 				AllowUnseal:        true,
+				ForceMatchSchedule: false,
 			}, nil, sa)
 			if err != nil {
 				return err
