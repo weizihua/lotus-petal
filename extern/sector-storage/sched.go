@@ -374,15 +374,19 @@ func (sh *scheduler) trySched() {
 		}
 
 		if !noMatchTask {
+			var sched = false
 			for _, match := range sh.matches[matchID] {
 				if req, has := schedWorkers[match.id]; has {
 					if sh.doSched(task, req, match.id) {
 						log.Debug("assign to match worker")
 						sh.schedQueue.Remove(i)
 						i--
+						sched = true
+						break
 					}
 				}
 			}
+			if sched { continue }
 		}
 
 		if sh.forceMatch || noMatchTask {
@@ -390,6 +394,7 @@ func (sh *scheduler) trySched() {
 				if sh.doSched(task, req, wid) {
 					sh.schedQueue.Remove(i)
 					i--
+					break
 				}
 			}
 		}
@@ -459,6 +464,8 @@ func (sh *scheduler) trySched() {
 
 func (sh *scheduler) doSched(task *workerRequest, window *schedWindowRequest, wid WorkerID) bool {
 	worker := sh.workers[wid]
+	var schedWindow = &schedWindow{}
+	needRes := ResourceTable[task.taskType][sh.spt]
 
 	ok, err := task.sel.Ok(context.Background(), task.taskType, sh.spt, worker)
 	if err != nil || !ok {
@@ -468,14 +475,17 @@ func (sh *scheduler) doSched(task *workerRequest, window *schedWindowRequest, wi
 		return false
 	}
 
+	if !schedWindow.allocated.canHandleRequest(needRes, wid, "schedAcceptable", worker.info.Resources) {
+		log.Warnf("worker %d: not enough resource to handle %d:%s", wid, task.sector.Number, task.taskType)
+		return false
+	}
+
+	schedWindow.todo = []*workerRequest{ task }
+	schedWindow.allocated.add(worker.info.Resources, needRes)
+
 	if worker.w.MaxParallelSealingSector(context.Background()) == 0 {
 		log.Debugf("assign sector %d(%s) to worker %d", task.sector.Number, task.taskType, wid)
-		window.done <- &schedWindow{
-			todo: []*workerRequest{
-				task,
-			},
-		}
-
+		window.done <- schedWindow
 		return true
 	}
 
@@ -485,12 +495,7 @@ func (sh *scheduler) doSched(task *workerRequest, window *schedWindowRequest, wi
 	}
 	if uint64(len(worker.wt.running)+curActive+1) < worker.w.MaxParallelSealingSector(context.Background()) {
 		log.Debugf("assign sector %d(%s) to worker %d", task.sector.Number, task.taskType, wid)
-		window.done <- &schedWindow{
-			todo: []*workerRequest{
-				task,
-			},
-		}
-
+		window.done <- schedWindow
 		return true
 	}
 
