@@ -41,9 +41,7 @@ func (sh *scheduler) runWorkerWatcher() {
 				panic("got a non-WorkerID message")
 			}
 
-			sh.workersLk.Lock()
 			workerClosing, err := sh.workers[wid].w.Closing(ctx)
-			sh.workersLk.Unlock()
 			if err != nil {
 				log.Errorf("getting worker closing channel: %+v", err)
 				select {

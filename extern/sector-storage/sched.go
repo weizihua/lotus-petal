@@ -803,13 +803,11 @@ func (sh *scheduler) workerCleanup(wid WorkerID, w *workerHandle) {
 		close(w.closingMgr)
 	}
 
-	sh.workersLk.Unlock()
 	select {
 	case <-w.closedMgr:
 	case <-time.After(time.Second):
 		log.Errorf("timeout closing worker manager goroutine %d", wid)
 	}
-	sh.workersLk.Lock()
 
 	if !w.cleanupStarted {
 		w.cleanupStarted = true
@@ -856,7 +854,7 @@ func (sh *scheduler) workerCleanup(wid WorkerID, w *workerHandle) {
 
 		go func() {
 			if err := w.w.Close(); err != nil {
-				log.Warnf("closing worker %d: %+v", err)
+				log.Warnf("closing worker %d: %+v", wid, err)
 			}
 		}()
 	}
