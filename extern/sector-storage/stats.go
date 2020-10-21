@@ -81,9 +81,6 @@ func (m *Manager) WorkerJobs() map[uint64][]storiface.WorkerJob {
 func (m *Manager) SchedQueue() []Task {
 	var tasks = make([]Task, 0)
 
-	m.sched.workersLk.RLock()
-	defer m.sched.workersLk.RUnlock()
-
 	if m.sched.schedQueue != nil {
 		for _, r := range *m.sched.schedQueue {
 			tasks = append(tasks, Task{
@@ -101,6 +98,9 @@ func (m *Manager) SchedQueue() []Task {
 }
 
 func (m *Manager) WorkerTodos() map[WorkerID][]Todo {
+	m.sched.workersLk.RLock()
+	defer m.sched.workersLk.RUnlock()
+
 	var workersTodo = make(map[WorkerID][]Todo, 0)
 	for wid, worker := range m.sched.workers {
 		if worker == nil {
@@ -133,6 +133,9 @@ func (m *Manager) WorkerTodos() map[WorkerID][]Todo {
 }
 
 func (m *Manager) WorkerLoad() map[WorkerID]LoadInfo {
+	m.sched.workersLk.RLock()
+	defer m.sched.workersLk.RUnlock()
+
 	var out = make(map[WorkerID]LoadInfo)
 	for wid, whandle := range m.sched.workers {
 		max := whandle.w.MaxParallelSealingSector(context.Background())
@@ -148,6 +151,9 @@ func (m *Manager) WorkerLoad() map[WorkerID]LoadInfo {
 }
 
 func (m *Manager) WorkerTaskTypes() map[WorkerID][]string {
+	m.sched.workersLk.RLock()
+	defer m.sched.workersLk.RUnlock()
+
 	var out = make(map[WorkerID][]string)
 	for wid, whandel := range m.sched.workers {
 
@@ -169,6 +175,9 @@ func (m *Manager) WorkerTaskTypes() map[WorkerID][]string {
 }
 
 func (m *Manager) ListMatches() map[string][]string {
+	m.sched.workersLk.RLock()
+	defer m.sched.workersLk.RUnlock()
+
 	var out = make(map[string][]string)
 	for id, matches := range m.sched.matches {
 		var matchHosts = make([]string, len(matches))
