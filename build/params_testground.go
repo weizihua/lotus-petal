@@ -83,14 +83,16 @@ var (
 	UpgradeSmokeHeight    abi.ChainEpoch = -1
 	UpgradeIgnitionHeight abi.ChainEpoch = -2
 	UpgradeRefuelHeight   abi.ChainEpoch = -3
+	UpgradeTapeHeight     abi.ChainEpoch = -4
 	UpgradeActorsV2Height abi.ChainEpoch = 10
-	UpgradeLiftoffHeight  abi.ChainEpoch = -4
+	UpgradeLiftoffHeight  abi.ChainEpoch = -5
+	UpgradeKumquatHeight  abi.ChainEpoch = -6
 
 	DrandSchedule = map[abi.ChainEpoch]DrandEnum{
 		0: DrandMainnet,
 	}
 
-	NewestNetworkVersion       = network.Version4
+	NewestNetworkVersion       = network.Version5
 	ActorUpgradeNetworkVersion = network.Version4
 
 	Devnet = true
