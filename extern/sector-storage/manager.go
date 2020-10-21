@@ -87,7 +87,7 @@ type SealerConfig struct {
 	AllowPreCommit1 bool
 	AllowPreCommit2 bool
 	AllowCommit1    bool
-	AllowCommit2	bool
+	AllowCommit2    bool
 	AllowUnseal     bool
 
 	ForceMatchSchedule bool
@@ -136,7 +136,7 @@ func New(ctx context.Context, ls stores.LocalStorage, si stores.SectorIndex, cfg
 	if sc.AllowPreCommit2 {
 		localTasks = append(localTasks, sealtasks.TTPreCommit2)
 	}
-	if sc.AllowCommit1{
+	if sc.AllowCommit1 {
 		localTasks = append(localTasks, sealtasks.TTPreCommit1)
 	}
 	if sc.AllowCommit2 {
@@ -155,6 +155,38 @@ func New(ctx context.Context, ls stores.LocalStorage, si stores.SectorIndex, cfg
 	}
 
 	return m, nil
+}
+
+func (m *Manager) watchScheduler() {
+	log.Infof("watching scheduler")
+	for {
+		select {
+		case <-m.sched.closing:
+			log.Warnf("scheduler closing, try restart")
+			m.sched = &scheduler{
+				spt:            m.sched.spt,
+				nextWorker:     m.sched.nextWorker,
+				workers:        m.sched.workers,
+				newWorkers:     make(chan *workerHandle),
+				watchClosing:   make(chan WorkerID),
+				workerClosing:  make(chan WorkerID),
+				schedule:       make(chan *workerRequest),
+				windowRequests: make(chan *schedWindowRequest, 20),
+				schedQueue:     m.sched.schedQueue,
+				info:           make(chan func(interface{})),
+				closing:        make(chan struct{}),
+				closed:         make(chan struct{}),
+				matches:        m.sched.matches,
+				forceMatch:     m.sched.forceMatch,
+			}
+
+			go m.sched.runSched()
+
+			for wid, _ :=  range m.sched.workers {
+				m.sched.runWorker(wid)
+			}
+		}
+	}
 }
 
 func (m *Manager) AddLocalStorage(ctx context.Context, path string) error {
