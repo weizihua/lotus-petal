@@ -87,15 +87,19 @@ type SealerConfig struct {
 	AllowPreCommit1 bool
 	AllowPreCommit2 bool
 	AllowCommit1    bool
-	AllowCommit2	bool
+	AllowCommit2    bool
 	AllowUnseal     bool
+}
 
+type ScheduleConfig struct {
 	ForceMatchSchedule bool
+	ScheduleInterval   string
+	DisableTimer       bool
 }
 
 type StorageAuth http.Header
 
-func New(ctx context.Context, ls stores.LocalStorage, si stores.SectorIndex, cfg *ffiwrapper.Config, sc SealerConfig, urls URLs, sa StorageAuth) (*Manager, error) {
+func New(ctx context.Context, ls stores.LocalStorage, si stores.SectorIndex, cfg *ffiwrapper.Config, sc SealerConfig, urls URLs, sa StorageAuth, scc ScheduleConfig) (*Manager, error) {
 	lstor, err := stores.NewLocal(ctx, ls, si, urls)
 	if err != nil {
 		return nil, err
@@ -117,7 +121,7 @@ func New(ctx context.Context, ls stores.LocalStorage, si stores.SectorIndex, cfg
 		remoteHnd:  &stores.FetchHandler{Local: lstor},
 		index:      si,
 
-		sched: newScheduler(cfg.SealProofType, sc.ForceMatchSchedule),
+		sched: newScheduler(cfg.SealProofType, scc),
 
 		Prover: prover,
 	}
@@ -136,7 +140,7 @@ func New(ctx context.Context, ls stores.LocalStorage, si stores.SectorIndex, cfg
 	if sc.AllowPreCommit2 {
 		localTasks = append(localTasks, sealtasks.TTPreCommit2)
 	}
-	if sc.AllowCommit1{
+	if sc.AllowCommit1 {
 		localTasks = append(localTasks, sealtasks.TTPreCommit1)
 	}
 	if sc.AllowCommit2 {

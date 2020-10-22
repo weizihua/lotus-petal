@@ -74,8 +74,10 @@ type scheduler struct {
 	closed   chan struct{}
 	testSync chan struct{} // used for testing
 
-	matches    map[string][]matchInfo
-	forceMatch bool
+	matches      map[string][]matchInfo
+	forceMatch   bool
+	interval     time.Duration
+	disableTimer bool
 }
 
 type matchInfo struct {
@@ -147,7 +149,12 @@ type workerResponse struct {
 	err error
 }
 
-func newScheduler(spt abi.RegisteredSealProof, forceMatch bool) *scheduler {
+func newScheduler(spt abi.RegisteredSealProof, sc ScheduleConfig) *scheduler {
+	interval, err := time.ParseDuration(sc.ScheduleInterval)
+	if err != nil {
+		interval = 10 * time.Minute
+	}
+
 	return &scheduler{
 		spt: spt,
 
@@ -173,7 +180,9 @@ func newScheduler(spt abi.RegisteredSealProof, forceMatch bool) *scheduler {
 			"undefined": {},
 		},
 
-		forceMatch: forceMatch,
+		forceMatch:   sc.ForceMatchSchedule,
+		interval:     interval,
+		disableTimer: sc.DisableTimer,
 	}
 }
 
@@ -238,7 +247,10 @@ func (sh *scheduler) runSched() {
 	iw := time.After(InitWait)
 	var initialised bool
 
-	timer := time.NewTimer(1 * time.Minute)
+	timer := time.NewTimer(sh.interval)
+	if sh.disableTimer {
+		timer.Stop()
+	}
 
 	for {
 		var doSched bool
@@ -293,7 +305,9 @@ func (sh *scheduler) runSched() {
 			}
 
 			sh.trySched()
-			timer.Reset(1 * time.Minute)
+			if !sh.disableTimer {
+				timer.Reset(sh.interval)
+			}
 		}
 
 	}
@@ -386,7 +400,9 @@ func (sh *scheduler) trySched() {
 					}
 				}
 			}
-			if sched { continue }
+			if sched {
+				continue
+			}
 		}
 
 		if sh.forceMatch || noMatchTask {
@@ -480,7 +496,7 @@ func (sh *scheduler) doSched(task *workerRequest, window *schedWindowRequest, wi
 		return false
 	}
 
-	schedWindow.todo = []*workerRequest{ task }
+	schedWindow.todo = []*workerRequest{task}
 	schedWindow.allocated.add(worker.info.Resources, needRes)
 
 	if worker.w.MaxParallelSealingSector(context.Background()) == 0 {

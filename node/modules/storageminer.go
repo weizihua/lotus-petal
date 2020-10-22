@@ -569,14 +569,14 @@ func RetrievalProvider(h host.Host,
 	return retrievalimpl.NewProvider(maddr, adapter, netwk, pieceStore, mds, dt, namespace.Wrap(ds, datastore.NewKey("/retrievals/provider")), opt)
 }
 
-func SectorStorage(mctx helpers.MetricsCtx, lc fx.Lifecycle, ls stores.LocalStorage, si stores.SectorIndex, cfg *ffiwrapper.Config, sc sectorstorage.SealerConfig, urls sectorstorage.URLs, sa sectorstorage.StorageAuth) (*sectorstorage.Manager, error) {
+func SectorStorage(mctx helpers.MetricsCtx, lc fx.Lifecycle, ls stores.LocalStorage, si stores.SectorIndex, cfg *ffiwrapper.Config, sc sectorstorage.SealerConfig, urls sectorstorage.URLs, sa sectorstorage.StorageAuth, scc sectorstorage.ScheduleConfig) (*sectorstorage.Manager, error) {
 	ctx := helpers.LifecycleCtx(mctx, lc)
 
 	if _, exist := os.LookupEnv("USE_ZERO_TRANSMISSION"); exist {
 		urls = append(urls, "zt:" + os.Getenv("STORAGE_ROOT_PATH"))
 	}
 
-	sst, err := sectorstorage.New(ctx, ls, si, cfg, sc, urls, sa)
+	sst, err := sectorstorage.New(ctx, ls, si, cfg, sc, urls, sa, scc)
 	if err != nil {
 		return nil, err
 	}

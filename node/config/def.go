@@ -33,6 +33,7 @@ type StorageMiner struct {
 
 	Dealmaking DealmakingConfig
 	Sealing    SealingConfig
+	Schedule   sectorstorage.ScheduleConfig
 	Storage    sectorstorage.SealerConfig
 	Fees       MinerFeeConfig
 }
@@ -160,6 +161,12 @@ func DefaultStorageMiner() *StorageMiner {
 			WaitDealsDelay:            Duration(time.Hour * 6),
 		},
 
+		Schedule: sectorstorage.ScheduleConfig{
+			ForceMatchSchedule: false,
+			ScheduleInterval:   "10m",
+			DisableTimer:       false,
+		},
+
 		Storage: sectorstorage.SealerConfig{
 			AllowAddPiece:   true,
 			AllowPreCommit1: true,
@@ -171,8 +178,6 @@ func DefaultStorageMiner() *StorageMiner {
 			// Default to 10 - tcp should still be able to figure this out, and
 			// it's the ratio between 10gbit / 1gbit
 			ParallelFetchLimit: 10,
-
-			ForceMatchSchedule: false,
 		},
 
 		Dealmaking: DealmakingConfig{

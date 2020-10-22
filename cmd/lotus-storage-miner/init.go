@@ -471,8 +471,11 @@ func storageMinerInit(ctx context.Context, cctx *cli.Context, api lapi.FullNode,
 				AllowCommit1:       true,
 				AllowCommit2:       true,
 				AllowUnseal:        true,
+			}, nil, sa, sectorstorage.ScheduleConfig{
 				ForceMatchSchedule: false,
-			}, nil, sa)
+				ScheduleInterval:   "10m",
+				DisableTimer:       false,
+			})
 			if err != nil {
 				return err
 			}
